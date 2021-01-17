@@ -5,40 +5,90 @@
 #map{
 	border:1px solid black;
 	display:inline-block;
+	background-color:"black";
 }
 #tape{
 	display: inline-block;
 	vertical-align: top;
+
+}
+.group {
+	background-color: rgb(20,10,0);
+	color:white;
+	font-family:Verdana;
+	font-size: 24px;
+}
+body {
+	background-color: black;
 }
 button{
-	margin-bottom:3px;
+	background-color: orange;
+	color: black;
+	outline-color:black;
+	outline-style:solid;
+	outline-width: 2px;
+	border:none;
+	margin-right: 3px;
+	margin-top: none;
+}
+button:hover {
+	outline-color: gray;
+}
+button:active {
+	outline-color: white;
 }
 </style>
 </head>
 <body>
+<div class="group">
+Custom NPC Spawns: 
 <button onclick="remove()">Clear</button>
 <button onclick="place()">Place NPC</button>
-<br>
+|
 <button onclick="setMode(0)">Player</button>
 <button onclick="setMode(1)">Bat</button>
 <button onclick="setMode(2)">Blob</button>
 <button onclick="setMode(3)">Melee</button>
 <button onclick="setMode(4)">Ranger</button>
 <button onclick="setMode(5)">Mager</button>
+</div>
 <br>
+<div class="group">
+Pause/Unpause: 
+<button onclick="toggle()" id="paused">Pause</button>
+</div>
+<br>
+<div class="group">
+Spawn Wave Randomly: 
+<button onclick="beginWave(0,2,1,0,0)">Spawn Random Wave 15</button>
+<button onclick="beginWave(0,2,1,0,1)">Spawn Random Wave 48</button>
+<button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 60</button>
+<button onclick="beginWave(1,2,1,1,1)">Spawn Random Wave 61</button>
+<button onclick="beginWave(2,1,1,1,1)">Spawn Random Wave 62</button>
+<button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 63</button>
+<button onclick="beginWave(1,2,2,2,2)">Spawn Ultimate Challenge</button>
+</div>
+<br>
+<div class="group">
+Toggle Pillars: 
 <button onclick="togglePillar(0)">Toggle W Pillar</button>
 <button onclick="togglePillar(1)">Toggle N Pillar</button>
 <button onclick="togglePillar(2)">Toggle S Pillar</button>
+</div>
 <br>
 <canvas id="map" onselectstart="return false" oncontextmenu="return false"></canvas>
 <script>
 var SIZE = [1,2,3,4,3,4];
 var RANGE = [10,4,15,1,15,15];
 var CD = [0,3,6,4,4,4];
+var HEALTH = [99,25,40,75,130,220]
+var DAMAGE = [0,19,29,49,46,70]
 var zuk_safe_spots = [[3,0],[9,0],[14,0],[19,0],[25,0]];
 
 var pillars = [[0,9],[17,7],[10,23]];
 var filters = [true,true,true];
+
+var playing = true;
 
 var spawns = [[1,5],[22,5],[3,11],[23,12],[16,17],[5,23],[23,25],[1,28],[15,28]];
 //zuk spawns [9,7],[18,7]
@@ -48,11 +98,82 @@ var selected = [16,5];
 var mobs = [];
 var tape = [];
 
+var health = 99;
+
+var destTile = [16,5];
+var attacking = undefined;
+
+function toggle() {
+	playing = !playing;
+	document.getElementById("paused").innerHTML = playing ? "Pause" : "Play";
+}
+
+var getReady = false;
+
 var can = document.getElementById("map")
 var ctx = can.getContext("2d");
 var size = 20;
+var player = [16*size,5*size];
 can.width = size*(29+6)
 can.height = size*30
+
+function randInt(x,y) {
+	return Math.round(Math.random()*(y-x))+x
+}
+
+function getRandomSpawn(spawnsUsed) {
+	var done = false
+	var picked = -1;
+	//attempts
+	var att = 0;
+	while(!done && att < 1000) {
+		var i = randInt(0,8);
+		console.log(i);
+		var searched = false;
+		for(var j in spawnsUsed) {
+			if(i == spawnsUsed[j]) {
+				searched = true;
+			}
+		}
+		if(!searched) {
+			done = true;
+			picked = i;
+		}
+		att++;
+	}
+	return picked;
+}
+function spawnEnemy(enemyID,amount,spawnsUsed) {
+	for(var i = 0; i < amount; i++) {
+		var s = getRandomSpawn(spawnsUsed);
+		//couldnt find spawn
+		if(s == -1) {
+			return spawnsUsed;
+		}
+		mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID]])
+		spawnsUsed.push(s)
+	}
+
+	return spawnsUsed;
+}
+function beginWave(bats,blob,melee,ranger,mager) {
+	getReady = true;
+	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);getReady = false;},1000);
+	
+}
+function spawn(bats,blobs,melee,ranger,mager) {
+	//Only 9 spawns!
+	if(bats+blobs+melee+ranger+mager > 9) {
+		return;
+	}
+	var spawnsUsed = [];
+	spawnsUsed = spawnEnemy(1,bats,spawnsUsed);
+	spawnsUsed = spawnEnemy(2,blobs,spawnsUsed);
+	spawnsUsed = spawnEnemy(3,melee,spawnsUsed);
+	spawnsUsed = spawnEnemy(4,ranger,spawnsUsed);
+	spawnsUsed = spawnEnemy(5,mager,spawnsUsed);
+}
+
 document.addEventListener('DOMContentLoaded',function(){
    drawWave()
 });
@@ -62,8 +183,27 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 	x = Math.floor(x/size);
 	y = Math.floor(y/size);
 	if(x<29){
-		selected[0] = x;
-		selected[1] = y;
+		if(mode != 0) {
+			selected[0] = x;
+			selected[1] = y;
+		} else {
+			var collidedWith = -1;
+			for(var i in mobs) {
+				if(doesCollide(x,y,1,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]])) {
+					collidedWith = i;
+					break;
+				}
+			}
+			if(collidedWith == -1) {
+				destTile[0] = x;
+				destTile[1] = y;
+				attacking = undefined;
+			} else if(hasLOS(mobs[collidedWith][0], mobs[collidedWith][1],selected[0], selected[1],SIZE[mobs[collidedWith][2]],10,true)) {
+				destTile[0] = selected[0];
+				destTile[1] = selected[1];
+				attacking = collidedWith;
+			}
+		}
 		drawWave();
 	}
 });
@@ -132,6 +272,7 @@ function hasLOS(x1, y1, x2, y2,s=1,r=1,isNPC=false) {
 				return false;
 			}
 		}
+
 	} else {
 		let yTile = y1;
 		let x = (x1 << 16) + 0x8000;
@@ -179,23 +320,138 @@ function legalPosition(x,y,s,index){
 	}
 	return !collision;
 }
-function place(){
+//Uses min and max functions to bound a number to being at greatest 1 and at smallest -1, useful for directions to be multiplied by magnitudes
+function minMaxUnit(x) {
+	return Math.min(1,Math.max(x,-1))
+}
+function dist(x,y,x2,y2) {
+	return Math.sqrt(Math.pow(x2-x,2) + Math.pow(y2-y,2))
+}
+
+function pathToDestTile() {
+	//make sure mode is player
+	if(mode == 0) {
+		var x = selected[0];
+		var y = selected[1];
+		var toX = destTile[0];
+		var toY = destTile[1];
+
+		var pathTiles = [];
+
+		var pathX = x;
+		var pathY = y;
+
+
+		if(Math.abs(toX - x) > Math.abs(toY - y)) {
+			var negate = (x-toX) > 0 ? 1 : -1
+			//find distance from tile that would get us to a diagonal
+			var tempDistX = Math.abs(toX - x) - Math.abs(toY - y);
+			var o = 1;
+			for(var i = Math.abs(x); i < Math.abs(x) + Math.abs(tempDistX); i++) {
+				pathTiles.push([pathX-(o*negate),pathY])
+				o++;
+			}
+			pathX = pathX - (tempDistX*negate);
+		} else if(Math.abs(toY - y) > Math.abs(toX - x)) {
+			var negate = (y-toY) > 0 ? 1 : -1
+			//find distance from tile that would get us to a diagonal
+			var tempDistY = Math.abs(toY - y) - Math.abs(toX - x);
+			var o = 1;
+			for(var i = Math.abs(y); i < Math.abs(y) + Math.abs(tempDistY); i++) {
+				pathTiles.push([pathX,pathY-(o*negate)])
+				o++;
+			}
+			pathY = pathY - (tempDistY*negate);
+		}
+		while(!(pathX == toX && pathY == toY)) {
+			var unitX = minMaxUnit(pathX-toX);
+			var unitY = minMaxUnit(pathY-toY);
+			pathTiles.push([pathX - unitX,pathY-unitY]);
+			pathX -= unitX;
+			pathY -= unitY;
+		}
+
+
+		//now that we have path tiles, let's move the player on over
+		var longestIndex = -1;
+		var longestDist = 0;
+		for(var i in pathTiles) {
+			//is this spot we're going to move to within 2 tiles?
+			if(Math.abs(pathTiles[i][0] - x) <= 2 && Math.abs(pathTiles[i][1] - y) <= 2) {
+				//checking that we're not going backwards
+				if(dist(pathTiles[i][0],pathTiles[i][1],toX,toY) > dist(x,y,toX,toY)) {
+					continue;
+				}
+				var newDist = dist(x,y,pathTiles[i][0],pathTiles[i][1]);
+				if(newDist > longestDist) {
+					longestDist = newDist;
+					longestIndex = i;
+				}
+			}
+		}
+		if(longestIndex != -1) {
+			x = pathTiles[longestIndex][0];
+			y = pathTiles[longestIndex][1];
+		} else {
+			//console.log("No more tiles to path to!");
+		}
+
+
+
+
+
+
+
+
+
+		/*var tempDestX = toX;
+		var tempDestY = toY;
+
+		if(Math.abs(toX - x) > Math.abs(toY - y)) {
+			//find distance from tile that would get us 
+			var tempDistX = (toX - x) - (toY - y);
+
+		}
+		var distX = toX-x;
+		var distY = toY-y;
+		var unitX = minMaxUnit(distX);
+		var unitY = minMaxUnit(distY);
+		var distToMoveX = (distX == 0) ? 0 : ((Math.abs(distX) > 1) ? 2 : 1);
+		var distToMoveY = (distY == 0) ? 0 : ((Math.abs(distY) > 1) ? 2 : 1);
+		if(distX == distY) {
+			console.log(unitX);
+			x += unitX * distToMoveX;
+			y += unitY * distToMoveY;
+		} else if(Math.abs(distX) > Math.abs(distY)) {
+			x += unitX * distToMoveX;
+		} else if(Math.abs(distY) > Math.abs(distX)) {
+			y += unitX * distToMoveX
+		}
+*/
+
+		selected[0] = x;
+		selected[1] = y;
+	}
+}
+function place() {
 	if(mode>0){
-		//x y mode ox oy cooldown
+		//x y mode ox oy cooldown health
 		//prevent 2 mobs on same tile
 		for(var i=0;i<mobs.length;i++){
 			if(mobs[i][3]==selected[0] && mobs[i][4]==selected[1]){
 				return;
 			}
 		}
-		mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0]);
+		mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode]]);
 		mobs.sort(function(a,b){
 			return b[2]-a[2];
 		})
 	}
 }
-function step(){
-	if(mode==0 && mobs.length>0){
+function step() {
+	scrollingTape = !scrollingTape;
+	if(mode==0/* && mobs.length>0*/){
+		
 		var line = []
 		for(var i=0;i<mobs.length;i++){
 			var mob = mobs[i];
@@ -233,11 +489,52 @@ function step(){
 				}
 			}
 		}
-		tape.push(line);
+		tape.unshift(line);
+		var prayedAgainst = false;
+		for(var i in tape[0]) {
+			//assume we can pray against blobs in any situation, but anything else is no good.
+			//numbers smaller than zero aren't attacks
+			if(tape[0][i] <= 0 || Math.abs(tape[0][i]) == 2) {
+				continue;
+			}
+			if(!prayedAgainst) {
+				prayedAgainst = true;
+			} else {
+				health -= randInt(0,DAMAGE[tape[0][i]]);
+			}
+		}
+		var blobbed = 0;
+		var melee = false;
+		for(var i in tape[0]) {
+			if(tape[0][i] == 2) {
+				blobbed ++;
+			}
+			if(tape[0][i] == 3) {
+				melee = true;
+			}
+		}
+		if(blobbed > 0 && melee) {
+			//blob dmg
+			health -= randInt(0,DAMAGE[2]);
+		}
+		if(tape.length > 30) {
+			tape.splice(30)
+		}
+
+		if(attacking == undefined) {
+			pathToDestTile();
+		} else {
+			mobs[attacking][6]-=randInt(0,20);
+			if(mobs[attacking][6] <= 0) {
+				mobs.splice(attacking,1);
+				attacking = undefined;
+			}
+		}
 	}
 }
 function remove(){
 	mobs = []
+	attacking = undefined;
 	reset();
 	drawWave();
 }
@@ -249,6 +546,11 @@ function reset(){
 	}
 	tape = [];
 }
+
+
+
+
+
 function setMode(m){
 	mode = m;
 	drawWave();
@@ -269,14 +571,20 @@ function drawLOS(x,y,s,r,isNPC,color="red"){
 	ctx.globalAlpha = 1;
 }
 
+function lerp(x,y,a) {
+	return ((y-x)*a) + x
+}
+var scrollingTape = true;
 function drawWave(){
 	ctx.globalAlpha = 1;
-	ctx.clearRect(0,0,can.width,can.height);
+	ctx.fillStyle = "black";
+	ctx.fillRect(0,0,can.width,can.height);
 	var colors = ["cyan","grey","yellow","orange","lime","red"]
 	for(var i=0;i<870;i++){
-		ctx.fillStyle = (i%2)?"#fff":"#eee";
+		ctx.fillStyle = (i%2)?"#100":"#210";
 		ctx.fillRect(i%29*size,Math.floor(i/29)*size,size,size)
 	}
+
 	//pillars
 	ctx.fillStyle = "#222";
 	for(var i=0;i<pillars.length;i++){
@@ -297,6 +605,7 @@ function drawWave(){
 		ctx.fillRect(zuk_safe_spots[i][0]*size,(zuk_safe_spots[i][1]+1)*size,1*size,-1*size)
 	}
 	ctx.globalAlpha = 1;
+
 	//mobs
 	for(var i=0;i<mobs.length;i++){
 		var x = mobs[i][0];
@@ -304,12 +613,22 @@ function drawWave(){
 		var s = SIZE[mobs[i][2]];
 		var r = RANGE[mobs[i][2]];
 		var c = colors[mobs[i][2]];
+		var maxHealth = HEALTH[mobs[i][2]];
+		ctx.globalAlpha = .35
 		ctx.fillStyle = ctx.strokeStyle = c;
 		ctx.fillRect(mobs[i][0]*size,(mobs[i][1]+1)*size,1*size,-1*size)
 		ctx.strokeRect(mobs[i][0]*size+1,(mobs[i][1]+1)*size-1,s*size,-s*size)
 		if(mode==0 && hasLOS(mobs[i][0],mobs[i][1],selected[0],selected[1],s,r,true)){
 			ctx.fillStyle = "black";
 			ctx.fillRect(mobs[i][0]*size,(mobs[i][1]+1)*size,1*size/4,-1*size/4)
+		}
+		ctx.globalAlpha = 1;
+		ctx.drawImage(allImages[mobs[i][2]-1],x*size,(y-s+1)*size,s*size,s*size)
+		if(mobs[i][6] < maxHealth) {
+			ctx.fillStyle = "red";
+			ctx.fillRect(x*size + s*size/2 - 40,(y*size) - 50,80,5);
+			ctx.fillStyle = "green";
+			ctx.fillRect(x*size + s*size/2 - 40,(y*size) - 50,(mobs[i][6]/maxHealth)*80,5);
 		}
 	}
 	var s = SIZE[mode];
@@ -321,7 +640,8 @@ function drawWave(){
 	ctx.strokeRect(selected[0]*size,(selected[1]+1)*size,s*size,-s*size)
 	var offset = 29*size;
 	for(var i=0;i<tape.length;i++){
-		ctx.fillStyle = i%2==0? "#ddd" : "#eee";
+		var condition = ((scrollingTape) ? !(i%2==0) : (i%2==0));
+		ctx.fillStyle = condition ? "#222" : "#444";
 		ctx.fillRect(offset,size*(i),size*6,size)
 		for(var j=0;j<tape[i].length;j++){
 			var t = tape[i][j]
@@ -334,7 +654,74 @@ function drawWave(){
 			}
 		}
 	}
+
+	if(mode == 0) {
+		//destTile
+		if(destTile[0] != selected[0] && destTile[1] != selected[1]) {
+			ctx.strokeStyle = "blue"
+			ctx.strokeRect(destTile[0]*size,destTile[1]*size,size,size);
+		}
+
+		//player
+		player[0] = lerp(player[0],selected[0]*size,.15);
+		player[1] = lerp(player[1],selected[1]*size,.15);
+		ctx.globalAlpha = .2;
+		ctx.fillStyle = "blue"
+		ctx.fillRect(player[0],player[1],size,size);
+		ctx.globalAlpha = 1;
+
+		if(attacking !== undefined) {
+			ctx.drawImage(allImages[5],player[0],player[1],size,size)
+		}
+		//health
+		ctx.fillStyle = "red";
+		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20,40,5);
+		ctx.fillStyle = "green";
+		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20,Math.max(0,(health/HEALTH[0])*40),5);
+	}
+
+	//get ready
+	if(getReady == true) {
+		ctx.fillStyle = "white";
+		ctx.textBaseline = "middle";
+		ctx.textAlign="center";
+		ctx.font = "50px Verdana";
+		ctx.fillStyle = "white";
+		ctx.fillText("Get Ready!",(can.width-6*size)/2,can.height/2);
+	}
+	if(health < 0) {
+		ctx.fillStyle = "white";
+		ctx.textBaseline = "top";
+		ctx.textAlign="left";
+		ctx.font = "15px Verdana";
+		ctx.fillStyle = "red"
+		ctx.fillText("(You are currently dead, but you may keep going if you'd like.)",5,5);
+	}
 }
+
+function loop() {
+	var counter = 0;
+	window.setInterval(function() {if(playing) {counter++;} else {counter = 0;}if(counter >= 10) {counter = 0;step();if(tape.length>= 30) { /*tape = [];*/}} drawWave();},600/10)
+
+}
+var allImages = [];
+function images(paths) {
+	var done = 0;
+	for(var i in paths) {
+		var img = new Image()
+		img.src = paths[i]
+		img.ind = i;
+		img.onload = function() {
+			allImages[this.ind] = this;
+			done++;
+			if(done >= paths.length) {
+				loop();
+			}
+		}
+	}
+}
+images(["1.png","2.png","3.png","4.png","5.png","6.png"])
+
 </script>
 </body>
 </html>
