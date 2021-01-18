@@ -83,7 +83,7 @@ Toggle Pillars:
 </div>
 <script>
 var SIZE = [1,2,3,4,3,4];
-var RANGE = [10,4,15,1,15,15];
+var RANGE = [5,4,15,1,15,15];
 var CD = [0,3,6,4,4,4];
 var HEALTH = [99,25,40,75,130,220]
 var DAMAGE = [0,19,29,49,46,70]
@@ -202,7 +202,7 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 				destTile[0] = x;
 				destTile[1] = y;
 				attacking = undefined;
-			} else if(hasLOS(mobs[collidedWith][0], mobs[collidedWith][1],selected[0], selected[1],SIZE[mobs[collidedWith][2]],10,true)) {
+			} else if(hasLOS(mobs[collidedWith][0], mobs[collidedWith][1],selected[0], selected[1],SIZE[mobs[collidedWith][2]],RANGE[mode],true)) {
 				destTile[0] = selected[0];
 				destTile[1] = selected[1];
 				attacking = collidedWith;
