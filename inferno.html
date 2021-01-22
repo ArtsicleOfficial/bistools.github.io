@@ -516,6 +516,13 @@ function step() {
 		for(var i in tape[0]) {
 			if(tape[0][i] == 2) {
 				blobbed ++;
+				for(var j in tape[3]) {
+					//couldn't pray against melee+blob three ticks ago. Technically this would be blobbed+=0.5 because you'll pray against it half the time
+					//but let's be more punishing
+					if(tape[3][j] == 3) {
+						blobbed++;
+					}
+				}
 			} else if(tape[0][i] == 3) {
 				melee = true;
 			} else if(tape[0][i] >= 0) {
@@ -527,7 +534,7 @@ function step() {
 		if(blobbed > 0 && melee) {
 			//blob dmg
 			//multiply by three because of missed cases and to be more punishing
-			health -= randInt(0,DAMAGE[2]*blobbed*3);
+			health -= randInt(0,DAMAGE[2]*blobbed*2);
 		}
 		if(tape.length > 30) {
 			tape.splice(30)
