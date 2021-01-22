@@ -526,7 +526,8 @@ function step() {
 		}
 		if(blobbed > 0 && melee) {
 			//blob dmg
-			health -= randInt(0,DAMAGE[2]*blobbed);
+			//multiply by three because of missed cases and to be more punishing
+			health -= randInt(0,DAMAGE[2]*blobbed*3);
 		}
 		if(tape.length > 30) {
 			tape.splice(30)
