@@ -516,14 +516,17 @@ function step() {
 		for(var i in tape[0]) {
 			if(tape[0][i] == 2) {
 				blobbed ++;
-			}
-			if(tape[0][i] == 3) {
+			} else if(tape[0][i] == 3) {
 				melee = true;
+			} else if(tape[0][i] >= 0) {
+				//just give more damage if there are more things attacking
+				blobbed ++;
 			}
+			
 		}
 		if(blobbed > 0 && melee) {
 			//blob dmg
-			health -= randInt(0,DAMAGE[2]);
+			health -= randInt(0,DAMAGE[2]*blobbed);
 		}
 		if(tape.length > 30) {
 			tape.splice(30)
