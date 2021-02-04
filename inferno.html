@@ -202,6 +202,11 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 			if(collidedWith == -1) {
 				destTile[0] = x;
 				destTile[1] = y;
+				//if paused, teleport player to dest tile
+				if(!playing) {
+					selected[0] = x;
+					selected[1] = y;
+				}
 				attacking = undefined;
 			} else if(hasLOS(mobs[collidedWith][0], mobs[collidedWith][1],selected[0], selected[1],SIZE[mobs[collidedWith][2]],RANGE[mode],true)) {
 				destTile[0] = selected[0];
