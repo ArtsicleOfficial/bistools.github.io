@@ -600,7 +600,7 @@ function step() {
 	updatePrayDisplay();
 
 	last3Prays.unshift(pray);
-	last3Prays.splice(4);
+	last3Prays.splice(31);
 	console.log(last3Prays);
 	if(mode==0/* && mobs.length>0*/){
 		
@@ -797,8 +797,14 @@ function drawWave(){
 	var offset = 29*size;
 	for(var i=0;i<tape.length;i++){
 		var condition = ((scrollingTape) ? !(i%2==0) : (i%2==0));
-		ctx.fillStyle = condition ? "#222" : "#444";
+		ctx.fillStyle = condition ? "#111" : "#222";
 		ctx.fillRect(offset,size*(i),size*6,size)
+		if(last3Prays[i] > 0) {
+			ctx.fillStyle = last3Prays[i] == prays.melee ? "white" : (last3Prays[i] == prays.range ? "green" : "red")
+			ctx.globalAlpha = .2
+			ctx.fillRect(offset,size*(i),size*6,size);
+			ctx.globalAlpha = 1;
+		}
 		for(var j=0;j<tape[i].length;j++){
 			var t = tape[i][j]
 			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
