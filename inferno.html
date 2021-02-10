@@ -37,6 +37,38 @@ button:hover {
 button:active {
 	outline-color: white;
 }
+#pray {
+	width: 198px;
+	height: 272px;
+}
+#mage {
+	position: relative;
+	left: 45px;
+	top: 125px;
+	width: 34px;
+	height: 34px;
+	cursor:pointer;
+}
+#melee {
+	position: relative;
+	left: 42px;
+	top: 125px;
+	width: 34px;
+	height: 34px;
+	cursor:pointer;
+}
+#range {
+	position: relative;
+	left: 44px;
+	top: 125px;
+	width: 34px;
+	height: 34px;
+	cursor:pointer;
+}
+
+.invisible {
+	opacity: 0;
+}
 </style>
 </head>
 <body>
@@ -54,18 +86,25 @@ Custom NPC Spawns:
 </div>
 <br>
 <div class="group">
-Pause/Unpause: 
+Ticks: 
 <button onclick="toggle()" id="paused">Pause</button>
+<button onclick="toggleMetronome()">Toggle Metronome</button>
 </div>
 <br>
 <div class="group">
 Spawn Wave Randomly: 
+<button onclick="retry()">Retry Wave</button>
+ | 
+<button onclick="beginWave(0,1,0,0,0)">Spawn Random Wave 4</button>
+<button onclick="beginWave(0,2,0,0,0)">Spawn Random Wave 7</button>
 <button onclick="beginWave(0,2,1,0,0)">Spawn Random Wave 15</button>
 <button onclick="beginWave(0,2,1,0,1)">Spawn Random Wave 48</button>
 <button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 60</button>
 <button onclick="beginWave(1,2,1,1,1)">Spawn Random Wave 61</button>
 <button onclick="beginWave(2,1,1,1,1)">Spawn Random Wave 62</button>
 <button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 63</button>
+<button onclick="beginWave(0,0,2,1,1)">Spawn Random Wave 64</button>
+<button onclick="beginWave(7,2,0,0,0)">Spawn Nightmare</button>
 <button onclick="beginWave(1,2,2,2,2)">Spawn Ultimate Challenge</button>
 </div>
 <br>
@@ -76,22 +115,36 @@ Toggle Pillars:
 <button onclick="togglePillar(2)">Toggle S Pillar</button>
 </div>
 <br>
+<br>
+<div style="display:inline-flex;flex-flow:row wrap;justify-content:flex-start;align-items:flex-end;" class="rightSide">
 <canvas id="map" onselectstart="return false" oncontextmenu="return false"></canvas>
+<div class="rightSide" id="pray" style="background-image: url('pray.png');">
+<img src="mage.png" id="mage" onclick="window.setTimeout(magePray,50);"/>
+<img src="range.png" onclick="window.setTimeout(rangePray,50);"class="" id="range"/>
+<img src="melee.png" onclick="window.setTimeout(meleePray,50);"class="" id="melee"/>
+</div>
+</div>
 <br>
 <div class="group">
 	This is a mod of the original: <a>https://bistools.github.io/inferno.html</a>  
 </div>
+</br>
 <script>
-	/*todo: add prayer buttons*/
+
 var SIZE = [1,2,3,4,3,4];
 var RANGE = [5,4,15,1,15,15];
-var CD = [0,3,6,4,4,4];
+var CD = [0,3,3,4,4,4];
 var HEALTH = [99,25,40,75,130,220]
 var DAMAGE = [0,19,29,49,46,70]
 var zuk_safe_spots = [[3,0],[9,0],[14,0],[19,0],[25,0]];
 
 var pillars = [[0,9],[17,7],[10,23]];
 var filters = [true,true,true];
+
+var metronome = false;
+
+var types = {player:0,bat:1,blob:2,melee:3,ranger:4,mager:5}
+var prays = {none:0,mage:1,range:2,melee:3}
 
 var playing = true;
 
@@ -103,15 +156,72 @@ var selected = [16,5];
 var mobs = [];
 var tape = [];
 
+var sfx = new Audio("bonk.ogg");
+
 var health = 99;
 
 var destTile = [16,5];
 var attacking = undefined;
 
+//0 = none
+//1 = mage
+//2 = range
+//3 = melee
+var pray = 0;
+var renderingPray = 0;
+
+var spawnPos = [16,5];
+
+var mageEle = document.getElementById("mage")
+var rangeEle = document.getElementById("range")
+var meleeEle = document.getElementById("melee")
+
 function toggle() {
 	playing = !playing;
 	document.getElementById("paused").innerHTML = playing ? "Pause" : "Play";
 }
+function toggleMetronome() {
+	metronome = !metronome;
+}
+
+function retry() {
+	if(mode == 0) {
+		selected = JSON.parse(JSON.stringify(spawnPos));
+		destTile = JSON.parse(JSON.stringify(spawnPos));
+	}
+	reset();
+	health=99;
+	drawWave();
+}
+
+function magePray() {
+	if(pray == 1) {
+		pray = 0;
+		mageEle.className = "invisible"
+	} else {
+		pray = 1
+		mageEle.className = ""
+	}
+}
+function rangePray() {
+	if(pray == 2) {
+		pray = 0;
+		rangeEle.className = "invisible"
+	} else {
+		pray = 2
+		rangeEle.className = ""
+	}
+}
+function meleePray() {
+	if(pray == 3) {
+		pray = 0;
+		meleeEle.className = "invisible"
+	} else {
+		pray = 3
+		meleeEle.className = ""
+	}
+}
+
 
 var getReady = false;
 
@@ -155,7 +265,11 @@ function spawnEnemy(enemyID,amount,spawnsUsed) {
 		if(s == -1) {
 			return spawnsUsed;
 		}
-		mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID]])
+		if(enemyID == 2) {
+			mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID],false])
+		} else {
+			mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID]])
+		}
 		spawnsUsed.push(s)
 	}
 
@@ -163,7 +277,7 @@ function spawnEnemy(enemyID,amount,spawnsUsed) {
 }
 function beginWave(bats,blob,melee,ranger,mager) {
 	getReady = true;
-	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);getReady = false;},1000);
+	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);spawnPos = JSON.parse(JSON.stringify(selected)); getReady = false;},1000);
 	
 }
 function spawn(bats,blobs,melee,ranger,mager) {
@@ -452,14 +566,42 @@ function place() {
 				return;
 			}
 		}
-		mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode]]);
+		if(mode == 2) {
+			mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode],false]);
+		} else {
+			mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode]]);
+		}
 		mobs.sort(function(a,b){
 			return b[2]-a[2];
 		})
 	}
 }
+function updatePrayDisplay() {
+		mageEle.className = "invisible"
+		rangeEle.className = "invisible"
+		meleeEle.className = "invisible"
+	if(pray == 1) {
+		mageEle.className = ""
+	} else if(pray == 2) {
+		rangeEle.className = ""
+	} else if(pray == 3) {
+		meleeEle.className = ""
+	}
+	renderingPray = pray;
+}
+var last3Prays = [];
 function step() {
 	scrollingTape = !scrollingTape;
+
+	if(metronome) {
+		sfx.play();
+	}
+
+	updatePrayDisplay();
+
+	last3Prays.unshift(pray);
+	last3Prays.splice(4);
+	console.log(last3Prays);
 	if(mode==0/* && mobs.length>0*/){
 		
 		var line = []
@@ -471,7 +613,7 @@ function step() {
 			var t = mob[2];
 			var s = SIZE[t];
 			var r = RANGE[t];
-			line.push(-t);
+			line.push((mob[7] == true || mob[7] == undefined) ? -t : -1000);
 			//move
 			if(!hasLOS(x,y,selected[0],selected[1],s,r,true)){
 				var dx = x + Math.sign(selected[0]-x);
@@ -492,55 +634,42 @@ function step() {
 			x = mob[0];
 			y = mob[1];
 			//attack
-			if(hasLOS(x,y,selected[0],selected[1],s,r,true)){
+			if(hasLOS(x,y,selected[0],selected[1],s,r,true) || (t == 2 && mob[7] == true)) {
 				if(mob[5]<=0){
 					line[line.length-1] *= -1;
 					mob[5] = CD[t];
+					if(t == 2) {
+						mob[7] = !mob[7]
+					}
 				}
 			}
 		}
 		tape.unshift(line);
-		var prayedAgainst = 0;
+
 		for(var i in tape[0]) {
-			//assume we can pray against blobs in any situation, but anything else is no good.
-			//numbers smaller than zero aren't attacks
-			if(tape[0][i] <= 0 || Math.abs(tape[0][i]) == 2) {
+			if(tape[0][i] <= 0 || Math.abs(tape[0][i]) == 1000) {
 				continue;
 			}
-			if(prayedAgainst == 0) {
-				prayedAgainst = tape[0][i];
-			} else {
-				if((prayedAgainst == 5 && tape[0][i] == 1) || (prayedAgainst == 1 && tape[0][i] == 5)) {
-					continue;
-				}
-				health -= randInt(0,DAMAGE[tape[0][i]]);
+			if(tape[0][i] == types.bat && pray == prays.range) {
+				continue;
 			}
-		}
-		var blobbed = 0;
-		var melee = false;
-		for(var i in tape[0]) {
-			if(tape[0][i] == 2) {
-				blobbed ++;
-				for(var j in tape[3]) {
-					//couldn't pray against melee+blob three ticks ago. Technically this would be blobbed+=0.5 because you'll pray against it half the time
-					//but let's be more punishing
-					if(tape[3][j] == 3) {
-						blobbed++;
-					}
-				}
-			} else if(tape[0][i] == 3) {
-				melee = true;
-			} else if(tape[0][i] >= 0) {
-				//just give more damage if there are more things attacking
-				blobbed ++;
+			if(tape[0][i] == types.melee && pray == prays.melee) {
+				continue;
 			}
-			
+			if(tape[0][i] == types.ranger && pray == prays.range) {
+				continue;
+			}
+			if(tape[0][i] == types.mager && pray == prays.mage) {
+				continue;
+			}
+			var needToPray = ((last3Prays[3] == prays.mage) ? (prays.range) : ((last3Prays[3] == prays.range) ? (prays.mage) : 133742042042069 /*impossible to pray 133742042042069 without hacking*/))
+			if(tape[0][i] == types.blob && pray == needToPray) {
+				continue;
+			}
+
+			health -= randInt(0,DAMAGE[tape[0][i]]);
 		}
-		if(blobbed > 0 && melee) {
-			//blob dmg
-			//multiply by three because of missed cases and to be more punishing
-			health -= randInt(0,DAMAGE[2]*blobbed*2);
-		}
+		
 		if(tape.length > 30) {
 			tape.splice(30)
 		}
@@ -564,10 +693,12 @@ function remove(){
 	drawWave();
 }
 function reset(){
+	attacking = undefined;
 	for(var i=0;i<mobs.length;i++){
 		mobs[i][0] = mobs[i][3];
 		mobs[i][1] = mobs[i][4];
 		mobs[i][5] = 0;
+		mobs[i][6] = HEALTH[mobs[i][2]]
 	}
 	tape = [];
 }
@@ -670,10 +801,10 @@ function drawWave(){
 		ctx.fillRect(offset,size*(i),size*6,size)
 		for(var j=0;j<tape[i].length;j++){
 			var t = tape[i][j]
-			if(t>0){
-				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][t]
+			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
+				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][Math.abs(t)]
 				ctx.fillRect(offset+size*(j),size*(i),size,size)
-			}else if(t==-2 && i>=3 && tape[i-3][j]==2){
+			}else if(t == 1000 /*jesus christ we have a blob*/){
 				ctx.fillStyle = "black";
 				ctx.fillRect(offset+size*(j),size*(i),size,size)
 			}
@@ -690,7 +821,7 @@ function drawWave(){
 		//player
 		player[0] = lerp(player[0],selected[0]*size,.15);
 		player[1] = lerp(player[1],selected[1]*size,.15);
-		ctx.globalAlpha = .2;
+		ctx.globalAlpha = .4;
 		ctx.fillStyle = "blue"
 		ctx.fillRect(player[0],player[1],size,size);
 		ctx.globalAlpha = 1;
@@ -700,9 +831,12 @@ function drawWave(){
 		}
 		//health
 		ctx.fillStyle = "red";
-		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20,40,5);
+		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20 - (renderingPray > 0 ? 28 : 0),40,5);
 		ctx.fillStyle = "green";
-		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20,Math.max(0,(health/HEALTH[0])*40),5);
+		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20 - (renderingPray > 0 ? 28 : 0),Math.max(0,(health/HEALTH[0])*40),5);
+		if(renderingPray > 0) {
+			ctx.drawImage(allImages[5+renderingPray],player[0] - (28-size)/2,player[1]-32,28,28)
+		}
 	}
 
 	//get ready
@@ -745,7 +879,8 @@ function images(paths) {
 		}
 	}
 }
-images(["1.png","2.png","3.png","4.png","5.png","6.png"])
+updatePrayDisplay();
+images(["1.png","2.png","3.png","4.png","5.png","6.png","mageOver.png","rangeOver.png","meleeOver.png"])
 
 </script>
 </body>
