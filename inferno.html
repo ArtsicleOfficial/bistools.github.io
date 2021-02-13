@@ -184,7 +184,6 @@ var selected = [16,5];
 var mobs = [];
 var tape = [];
 
-var sfx = new Audio("bonk.ogg");
 
 var health = 99;
 
@@ -394,14 +393,18 @@ var waves = [
 
 function spawnSelectedWave() {
 	var v = parseInt(document.getElementById("wavenumber").value);
-	if(v == NaN) {
+	if(v === NaN || v === undefined) {
 		return;
 	}
 	if(v < 1 || v > 66) {
 		return;
 	}
+	if(!(v > 0)) {
+		return;
+	}
 
 	reset();
+	console.log(v > 0);
 	var w = waves[v-1];
 	beginWave(w[0],w[1],w[2],w[3],w[4])
 
@@ -780,7 +783,7 @@ function step() {
 	scrollingTape = !scrollingTape;
 
 	if(metronome) {
-		sfx.play();
+		new Audio("bonk.ogg").play();
 	}
 
 	updatePrayDisplay();
