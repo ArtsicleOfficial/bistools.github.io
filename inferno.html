@@ -7,21 +7,27 @@
 	display:inline-block;
 	background-color:"black";
 }
+.flip {
+	transform: scale(-1,-1);
+}
 #tape{
 	display: inline-block;
 	vertical-align: top;
 
 }
 .group {
-	background-color: rgb(20,10,0);
+	background-color: rgb(40,20,0,.5);
 	color:white;
 	font-family:Verdana;
 	font-size: 24px;
 }
+.light {
+	background-color:white;
+}
 body {
 	background-color: black;
 }
-button{
+button, input{
 	background-color: orange;
 	color: black;
 	outline-color:black;
@@ -31,11 +37,16 @@ button{
 	margin-right: 3px;
 	margin-top: none;
 }
+
 button:hover {
 	outline-color: gray;
 }
 button:active {
 	outline-color: white;
+}
+body {
+	user-select: none;
+	-moz-user-select: none;
 }
 #pray {
 	width: 198px;
@@ -75,35 +86,30 @@ button:active {
 <div class="group">
 Custom NPC Spawns: 
 <button onclick="remove()">Clear</button>
-<button onclick="place()">Place NPC</button>
+<button onclick="place()">Place NPC (`/~)</button>
 |
-<button onclick="setMode(0)">Player</button>
-<button onclick="setMode(1)">Bat</button>
-<button onclick="setMode(2)">Blob</button>
-<button onclick="setMode(3)">Melee</button>
-<button onclick="setMode(4)">Ranger</button>
-<button onclick="setMode(5)">Mager</button>
+<button onclick="setMode(0)">Player (1)</button>
+<button onclick="setMode(1)">Bat (2)</button>
+<button onclick="setMode(2)">Blob (3)</button>
+<button onclick="setMode(3)">Melee (4)</button>
+<button onclick="setMode(4)">Ranger (5)</button>
+<button onclick="setMode(5)">Mager (6)</button>
 </div>
 <br>
 <div class="group">
-Ticks: 
-<button onclick="toggle()" id="paused">Pause</button>
+Misc: 
+<button onclick="toggle()" id="paused">Pause (Space)</button>
 <button onclick="toggleMetronome()">Toggle Metronome</button>
+<button onclick="toggleTheme()">Toggle Dark Theme</button>
+<button onclick="flip()">Toggle Camera North/South (Not Recommended)</button>
 </div>
 <br>
 <div class="group">
 Spawn Wave Randomly: 
 <button onclick="retry()">Retry Wave</button>
  | 
-<button onclick="beginWave(0,1,0,0,0)">Spawn Random Wave 4</button>
-<button onclick="beginWave(0,2,0,0,0)">Spawn Random Wave 7</button>
-<button onclick="beginWave(0,2,1,0,0)">Spawn Random Wave 15</button>
-<button onclick="beginWave(0,2,1,0,1)">Spawn Random Wave 48</button>
-<button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 60</button>
-<button onclick="beginWave(1,2,1,1,1)">Spawn Random Wave 61</button>
-<button onclick="beginWave(2,1,1,1,1)">Spawn Random Wave 62</button>
-<button onclick="beginWave(0,2,1,1,1)">Spawn Random Wave 63</button>
-<button onclick="beginWave(0,0,2,1,1)">Spawn Random Wave 64</button>
+<input type="text" id="wavenumber" placeholder="Enter Wave #..."><button onclick="spawnSelectedWave();">Spawn Wave Number</button> | 
+
 <button onclick="beginWave(7,2,0,0,0)">Spawn Nightmare</button>
 <button onclick="beginWave(1,2,2,2,2)">Spawn Ultimate Challenge</button>
 </div>
@@ -126,11 +132,11 @@ Toggle Pillars:
 </div>
 <br>
 <div class="group">
-	This is a mod of the original: <a>https://bistools.github.io/inferno.html</a>  
+	This is a mod of the original: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>  
 </div>
 </br>
 <script>
-
+var SOUNDS = ["hit.ogg","bat.ogg","blob.ogg","meleer.ogg","ranger.ogg","mager.ogg"];
 var SIZE = [1,2,3,4,3,4];
 var RANGE = [5,4,15,1,15,15];
 var CD = [0,3,3,4,4,4];
@@ -148,8 +154,30 @@ var prays = {none:0,mage:1,range:2,melee:3}
 
 var playing = true;
 
+var rotatedSouth = true;
+
 var spawns = [[1,5],[22,5],[3,11],[23,12],[16,17],[5,23],[23,25],[1,28],[15,28]];
 //zuk spawns [9,7],[18,7]
+
+
+var darkTheme = true;
+
+
+
+function toggleTheme() {
+	darkTheme = !darkTheme;
+	if(darkTheme) {
+		document.body.className = "";
+		window.localStorage.setItem("infernodark","true")
+	} else {
+		document.body.className = "light"
+		window.localStorage.setItem("infernodark","false")
+	}
+}
+
+if(window.localStorage.getItem("infernodark") === "false") {
+	toggleTheme();
+}
 
 var mode = 0;
 var selected = [16,5];
@@ -168,6 +196,8 @@ var attacking = undefined;
 //2 = range
 //3 = melee
 var pray = 0;
+var praysOn = [0,0,0]
+var praysJustOn = [0,0,0]
 var renderingPray = 0;
 
 var spawnPos = [16,5];
@@ -178,7 +208,7 @@ var meleeEle = document.getElementById("melee")
 
 function toggle() {
 	playing = !playing;
-	document.getElementById("paused").innerHTML = playing ? "Pause" : "Play";
+	document.getElementById("paused").innerHTML = playing ? "Pause (Space)" : "Play (Space)";
 }
 function toggleMetronome() {
 	metronome = !metronome;
@@ -201,6 +231,8 @@ function magePray() {
 	} else {
 		pray = 1
 		mageEle.className = ""
+		praysOn[0] = true;
+		praysJustOn[0] = true;
 	}
 }
 function rangePray() {
@@ -210,6 +242,8 @@ function rangePray() {
 	} else {
 		pray = 2
 		rangeEle.className = ""
+		praysOn[1] = true;
+		praysJustOn[1] = true;
 	}
 }
 function meleePray() {
@@ -219,6 +253,8 @@ function meleePray() {
 	} else {
 		pray = 3
 		meleeEle.className = ""
+		praysOn[2] = true;
+		praysJustOn[2] = true;
 	}
 }
 
@@ -229,8 +265,16 @@ var can = document.getElementById("map")
 var ctx = can.getContext("2d");
 var size = 20;
 var player = [16*size,5*size];
-can.width = size*(29+6)
+can.width = size*(29+9)
 can.height = size*30
+
+function flip() {
+	if(can.className == "flip") {
+		can.className = "";
+	} else {
+		can.className = "flip";
+	}
+}
 
 function randInt(x,y) {
 	return Math.round(Math.random()*(y-x))+x
@@ -243,7 +287,6 @@ function getRandomSpawn(spawnsUsed) {
 	var att = 0;
 	while(!done && att < 1000) {
 		var i = randInt(0,8);
-		console.log(i);
 		var searched = false;
 		for(var j in spawnsUsed) {
 			if(i == spawnsUsed[j]) {
@@ -280,6 +323,90 @@ function beginWave(bats,blob,melee,ranger,mager) {
 	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);spawnPos = JSON.parse(JSON.stringify(selected)); getReady = false;},1000);
 	
 }
+var waves = [
+	[1,0,0,0,0],
+	[2,0,0,0,0],
+	[0,0,0,0,0],
+	[0,1,0,0,0],
+	[1,1,0,0,0],
+	[2,1,0,0,0],
+	[0,2,0,0,0], //7
+	[0,0,0,0,0],
+	[0,0,1,0,0],
+	[1,0,1,0,0],
+	[2,0,1,0,0],
+	[0,1,1,0,0],
+	[1,1,1,0,0],
+	[2,1,1,0,0],
+	[0,2,1,0,0], //15
+	[0,0,2,0,0],
+	[0,0,0,0,0], //17
+	[0,0,0,1,0],
+	[1,0,0,1,0],
+	[2,0,0,1,0],
+	[0,1,0,1,0], //21
+	[1,1,0,1,0],
+	[2,1,0,1,0], //23
+	[0,2,0,1,0], //24
+	[0,0,1,1,0], //25
+	[1,0,1,1,0], //26
+	[2,0,1,1,0], //27
+	[0,1,1,1,0], //28
+	[1,1,1,1,0], //29
+	[2,1,1,1,0], //30
+	[0,2,1,1,0], //31
+	[0,0,2,1,0], //32
+	[0,0,0,2,0], //33
+	[0,0,0,0,0], //34
+	[0,0,0,0,1], //35
+	[1,0,0,0,1], //36
+	[2,0,0,0,1], //37
+	[0,1,0,0,1], //38
+	[1,1,0,0,1], //39
+	[2,1,0,0,1], //40
+	[0,2,0,0,1], //41 double blob mage
+	[0,0,1,0,1], //42
+	[1,0,1,0,1], //43
+	[2,0,1,0,1], //44
+	[0,1,1,0,1], //45
+	[1,1,1,0,1], //46
+	[2,1,1,0,1], //47
+	[0,2,1,0,1], //48 double blob melee mage
+	[0,0,2,0,1], //49 2 melee mage
+	[0,0,0,1,1], //50
+	[1,0,0,1,1], //51
+	[2,0,0,1,1], //52
+	[0,1,0,1,1], //53
+	[1,1,0,1,1], //54
+	[2,1,0,1,1], //55
+	[0,2,0,1,1], //56
+	[0,0,1,1,1], //57
+	[1,0,1,1,1], //58
+	[2,0,1,1,1], //59
+	[0,1,1,1,1], //60
+	[1,1,1,1,1], //61
+	[2,1,1,1,1], //62
+	[0,2,1,1,1], //63
+	[0,0,2,1,1], //64
+	[0,0,0,2,1], //65
+	[0,0,0,0,2]  //66
+]
+
+function spawnSelectedWave() {
+	var v = parseInt(document.getElementById("wavenumber").value);
+	if(v == NaN) {
+		return;
+	}
+	if(v < 1 || v > 66) {
+		return;
+	}
+
+	reset();
+	var w = waves[v-1];
+	beginWave(w[0],w[1],w[2],w[3],w[4])
+
+	document.getElementById("wavenumber").value = ""
+}
 function spawn(bats,blobs,melee,ranger,mager) {
 	//Only 9 spawns!
 	if(bats+blobs+melee+ranger+mager > 9) {
@@ -296,6 +423,38 @@ function spawn(bats,blobs,melee,ranger,mager) {
 document.addEventListener('DOMContentLoaded',function(){
    drawWave()
 });
+document.addEventListener('DOMContentLoaded',function(){
+   drawWave()
+});
+document.addEventListener("keyup",function(e) {
+	switch(e.keyCode) {
+		case 32:
+			toggle();
+			break;
+		case 192:
+			place();
+			break;
+		case 49:
+			setMode(0);
+			break;
+		case 50:
+			setMode(1);
+			break;
+		case 51:
+			setMode(2);
+			break;
+		case 52:
+			setMode(3);
+			break;
+		case 53:
+			setMode(4);
+			break;
+		case 54:
+			setMode(5);
+			break;
+
+	}
+})
 document.getElementById("map").addEventListener('mousedown',function(e){
 	var x = e.offsetX;
 	var y = e.offsetY;
@@ -331,12 +490,14 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 		drawWave();
 	}
 });
+
 document.getElementById("map").addEventListener('wheel',function(e){
 	if(e.deltaY>0){
 		step();
 		drawWave();
-	}else{
+	} else {
 		reset();
+		health = 99;
 		drawWave();
 	}
 });
@@ -577,17 +738,42 @@ function place() {
 	}
 }
 function updatePrayDisplay() {
-		mageEle.className = "invisible"
-		rangeEle.className = "invisible"
-		meleeEle.className = "invisible"
+	if(praysJustOn[0]) {
+		new Audio("mageOn.ogg").play();
+	}
+	if(praysJustOn[1]) {
+		new Audio("rangeOn.ogg").play();
+	}
+	if(praysJustOn[2]) {
+		new Audio("meleeOn.ogg").play();
+	}
+	if(pray !== 1 && praysOn[0]) {
+		new Audio("mageOff.ogg").play();
+	}
+	if(pray !== 2 && praysOn[1]) {
+		new Audio("rangeOff.ogg").play();
+	}
+	if(pray !== 3 && praysOn[2]) {
+		new Audio("meleeOff.ogg").play();
+	}
+
+	mageEle.className = "invisible"
+	rangeEle.className = "invisible"
+	meleeEle.className = "invisible"
 	if(pray == 1) {
 		mageEle.className = ""
+		praysOn = [1,0,0]
 	} else if(pray == 2) {
 		rangeEle.className = ""
+		praysOn = [0,1,0]
 	} else if(pray == 3) {
 		meleeEle.className = ""
+		praysOn = [0,0,1]
+	} else {
+		praysOn = [0,0,0]
 	}
 	renderingPray = pray;
+	praysJustOn = [0,0,0]
 }
 var last3Prays = [];
 function step() {
@@ -601,7 +787,7 @@ function step() {
 
 	last3Prays.unshift(pray);
 	last3Prays.splice(31);
-	console.log(last3Prays);
+
 	if(mode==0/* && mobs.length>0*/){
 		
 		var line = []
@@ -641,6 +827,8 @@ function step() {
 					if(t == 2) {
 						mob[7] = !mob[7]
 					}
+					//attack animation/sound
+					if(t != 2 || (t == 2 && mob[7] == false)) {mob[8] = 1;new Audio(SOUNDS[t]).play();}
 				}
 			}
 		}
@@ -731,25 +919,26 @@ function lerp(x,y,a) {
 	return ((y-x)*a) + x
 }
 var scrollingTape = true;
-function drawWave(){
+function drawWave() {
+	ctx.save();
 	ctx.globalAlpha = 1;
-	ctx.fillStyle = "black";
+	ctx.fillStyle = (darkTheme == true) ? "black" : "white";
 	ctx.fillRect(0,0,can.width,can.height);
 	var colors = ["cyan","grey","yellow","orange","lime","red"]
 	for(var i=0;i<870;i++){
-		ctx.fillStyle = (i%2)?"#100":"#210";
+		ctx.fillStyle = (darkTheme == true) ? ((i%2)?"#100":"#210") : ((i%2)?"#FFF":"#EEE");
 		ctx.fillRect(i%29*size,Math.floor(i/29)*size,size,size)
 	}
 
 	//pillars
-	ctx.fillStyle = "#222";
+	ctx.fillStyle = (darkTheme == true) ? "#222" : "#555";
 	for(var i=0;i<pillars.length;i++){
 		if(filters[i]){
 			ctx.fillRect(pillars[i][0]*size,(pillars[i][1]+1)*size,3*size,-3*size)	
 		}
 	}
-	ctx.globalAlpha = 0.4;
-	ctx.fillStyle = "#999";
+	ctx.globalAlpha = (darkTheme == true) ? 0.1 : 0.3;
+	ctx.fillStyle = (darkTheme == true) ? "#FFF" : "#666";
 	for(var i=0;i<spawns.length;i++){
 		ctx.fillRect(spawns[i][0]*size,(spawns[i][1]+1)*size,4*size,-4*size)
 	}
@@ -766,9 +955,18 @@ function drawWave(){
 	for(var i=0;i<mobs.length;i++){
 		var x = mobs[i][0];
 		var y = mobs[i][1];
+		var t = mobs[i][2];
 		var s = SIZE[mobs[i][2]];
 		var r = RANGE[mobs[i][2]];
 		var c = colors[mobs[i][2]];
+		var animationProgress = mobs[i][8];
+		if(animationProgress === undefined) {
+			mobs[i][8] = 0;
+		}
+		if(animationProgress > 0) {
+			mobs[i][8] = Math.max(0,mobs[i][8]-0.05)
+		}
+
 		var maxHealth = HEALTH[mobs[i][2]];
 		ctx.globalAlpha = .35
 		ctx.fillStyle = ctx.strokeStyle = c;
@@ -779,7 +977,26 @@ function drawWave(){
 			ctx.fillRect(mobs[i][0]*size,(mobs[i][1]+1)*size,1*size/4,-1*size/4)
 		}
 		ctx.globalAlpha = 1;
-		ctx.drawImage(allImages[mobs[i][2]-1],x*size,(y-s+1)*size,s*size,s*size)
+		ctx.save();
+		var actualSize = s*size;
+		ctx.translate(x*size + actualSize/2,(y-s+1)*size + actualSize/2)
+		if(t == types.mager) {
+			ctx.rotate(animationProgress*Math.PI*2)
+		}
+		if(t == types.ranger) {
+			ctx.rotate(Math.sin(-animationProgress*Math.PI))
+		}
+		if(t == types.blob) {
+			ctx.scale(1 + Math.sin(animationProgress*Math.PI)/4,1 - Math.sin(animationProgress*Math.PI)/4)
+		}
+		if(t == types.bat) {
+			ctx.translate(Math.sin(animationProgress*Math.PI*4)*2,Math.sin(animationProgress*Math.PI*-2))
+		}
+		if(t == types.melee) {
+			ctx.transform(1,0,Math.sin(-animationProgress*Math.PI*2)/2,1,0,0)
+		}
+		ctx.drawImage(allImages[mobs[i][2]-1],-actualSize/2,-actualSize/2,s*size,s*size)
+		ctx.restore();
 		if(mobs[i][6] < maxHealth) {
 			ctx.fillStyle = "red";
 			ctx.fillRect(x*size + s*size/2 - 40,(y*size) - 50,80,5);
@@ -797,12 +1014,12 @@ function drawWave(){
 	var offset = 29*size;
 	for(var i=0;i<tape.length;i++){
 		var condition = ((scrollingTape) ? !(i%2==0) : (i%2==0));
-		ctx.fillStyle = condition ? "#111" : "#222";
-		ctx.fillRect(offset,size*(i),size*6,size)
+		ctx.fillStyle = darkTheme == true ? (condition ? "#111" : "#222") : (condition ? "#CCC" : "#DDD");
+		ctx.fillRect(offset,size*(i),size*9,size)
 		if(last3Prays[i] > 0) {
-			ctx.fillStyle = last3Prays[i] == prays.melee ? "white" : (last3Prays[i] == prays.range ? "green" : "red")
-			ctx.globalAlpha = .2
-			ctx.fillRect(offset,size*(i),size*6,size);
+			ctx.fillStyle = last3Prays[i] == prays.melee ? (darkTheme == true ? "white" : "#000") : (last3Prays[i] == prays.range ? "green" : "red")
+			ctx.globalAlpha = (darkTheme == true) ? .2 : .6
+			ctx.fillRect(offset,size*(i),size*9,size);
 			ctx.globalAlpha = 1;
 		}
 		for(var j=0;j<tape[i].length;j++){
@@ -845,9 +1062,10 @@ function drawWave(){
 		}
 	}
 
+
 	//get ready
 	if(getReady == true) {
-		ctx.fillStyle = "white";
+		ctx.fillStyle = (darkTheme == true) ? "white" : "black";
 		ctx.textBaseline = "middle";
 		ctx.textAlign="center";
 		ctx.font = "50px Verdana";
