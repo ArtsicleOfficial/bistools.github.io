@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded',function(){
 document.addEventListener('DOMContentLoaded',function(){
    drawWave()
 });
-document.addEventListener("keyup",function(e) {
+document.getElementById("map").addEventListener("keyup",function(e) {
 	switch(e.keyCode) {
 		case 32:
 			toggle();
