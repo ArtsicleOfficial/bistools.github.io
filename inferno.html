@@ -495,6 +495,7 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 });
 
 document.getElementById("map").addEventListener('wheel',function(e){
+	e.preventDefault();
 	if(e.deltaY>0){
 		step();
 		drawWave();
@@ -503,6 +504,7 @@ document.getElementById("map").addEventListener('wheel',function(e){
 		health = 99;
 		drawWave();
 	}
+	return false;
 });
 document.addEventListener('keydown',function(e){
 	//keyboard shortcuts for future?
