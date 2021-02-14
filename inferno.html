@@ -429,7 +429,16 @@ document.addEventListener('DOMContentLoaded',function(){
 document.addEventListener('DOMContentLoaded',function(){
    drawWave()
 });
-document.getElementById("map").addEventListener("keyup",function(e) {
+window.addEventListener("keypress",function(e) {
+	if(document.getElementById("wavenumber") == document.activeElement) {
+		return true;
+	}
+	e.preventDefault();
+});
+window.addEventListener("keyup",function(e) {
+	if(document.getElementById("wavenumber") == document.activeElement) {
+		return true;
+	}
 	switch(e.keyCode) {
 		case 32:
 			toggle();
@@ -457,6 +466,7 @@ document.getElementById("map").addEventListener("keyup",function(e) {
 			break;
 
 	}
+	return false;
 })
 document.getElementById("map").addEventListener('mousedown',function(e){
 	var x = e.offsetX;
@@ -901,7 +911,12 @@ function reset(){
 
 
 function setMode(m){
+	var priorM = mode;
 	mode = m;
+	if(m == 0 & priorM != 0) {
+		destTile[0] = selected[0];
+		destTile[1] = selected[1];
+	}
 	drawWave();
 }
 function drawLOS(x,y,s,r,isNPC,color="red"){
