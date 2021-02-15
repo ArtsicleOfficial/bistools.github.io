@@ -318,6 +318,7 @@ function spawnEnemy(enemyID,amount,spawnsUsed) {
 	return spawnsUsed;
 }
 function beginWave(bats,blob,melee,ranger,mager) {
+	remove();
 	getReady = true;
 	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);spawnPos = JSON.parse(JSON.stringify(selected)); getReady = false;},1000);
 	
