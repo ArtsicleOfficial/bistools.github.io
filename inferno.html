@@ -903,6 +903,7 @@ function reset(){
 		mobs[i][1] = mobs[i][4];
 		mobs[i][5] = 0;
 		mobs[i][6] = HEALTH[mobs[i][2]]
+		if(mobs[i][7] !== undefined) mobs[i][7] = false;
 	}
 	tape = [];
 }
