@@ -615,6 +615,10 @@ function legalPosition(x,y,s,index){
 		}
 	}
 	for(var i=0;i<mobs.length;i++){
+		if(i==-1){
+			// Player, not a mob
+			break;
+		}
 		if(i!=index){
 			collision = collision | doesCollide(x,y,s,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]]);
 		}
@@ -637,64 +641,98 @@ function pathToDestTile() {
 		var toX = destTile[0];
 		var toY = destTile[1];
 
+		// Avoid infinite loop by making sure that the destination is valid
+		if (!legalPosition(toX,toY,1,-1)){
+			return
+		}
+
 		var pathTiles = [];
 
 		var pathX = x;
 		var pathY = y;
 
+		var nodes = [
+			[x, y, null]
+		];
 
-		if(Math.abs(toX - x) > Math.abs(toY - y)) {
-			var negate = (x-toX) > 0 ? 1 : -1
-			//find distance from tile that would get us to a diagonal
-			var tempDistX = Math.abs(toX - x) - Math.abs(toY - y);
-			var o = 1;
-			for(var i = Math.abs(x); i < Math.abs(x) + Math.abs(tempDistX); i++) {
-				pathTiles.push([pathX-(o*negate),pathY])
-				o++;
+		// The order of possible directions in this array determines if the player moves first straight or diagonaly
+		directions = [
+			[1, 0],
+			[0, -1],
+			[0, 1],
+			[-1, 0],
+			[1, 1],
+			[-1, 1],
+			[-1, -1],
+			[1, -1],
+		];
+
+		// Djikstra search for the optimal route
+		var explored = {}
+		var iter = 0
+		while(nodes.length != 0){
+			var parent_node = nodes.shift()
+			
+			if((parent_node[0] == toX) & (parent_node[1] == toY)){
+				// console.log(["Found route", parent_node[0], parent_node[1], x, y, toX, toY]);
+				for(var i = 0; i < 10; i++){
+					if(! parent_node){break; }
+					pathTiles.push([parent_node[0], parent_node[1]]);
+					parent_node = parent_node[2];
+				}
+				break;
 			}
-			pathX = pathX - (tempDistX*negate);
-		} else if(Math.abs(toY - y) > Math.abs(toX - x)) {
-			var negate = (y-toY) > 0 ? 1 : -1
-			//find distance from tile that would get us to a diagonal
-			var tempDistY = Math.abs(toY - y) - Math.abs(toX - x);
-			var o = 1;
-			for(var i = Math.abs(y); i < Math.abs(y) + Math.abs(tempDistY); i++) {
-				pathTiles.push([pathX,pathY-(o*negate)])
-				o++;
-			}
-			pathY = pathY - (tempDistY*negate);
-		}
-		while(!(pathX == toX && pathY == toY)) {
-			var unitX = minMaxUnit(pathX-toX);
-			var unitY = minMaxUnit(pathY-toY);
-			pathTiles.push([pathX - unitX,pathY-unitY]);
-			pathX -= unitX;
-			pathY -= unitY;
-		}
+			for(var i = 0; i < directions.length; i++){
+				direction = directions[i]
+				pathX = parent_node[0] + direction[0];
+				pathY = parent_node[1] + direction[1];
 
-
-		//now that we have path tiles, let's move the player on over
-		var longestIndex = -1;
-		var longestDist = 0;
-		for(var i in pathTiles) {
-			//is this spot we're going to move to within 2 tiles?
-			if(Math.abs(pathTiles[i][0] - x) <= 2 && Math.abs(pathTiles[i][1] - y) <= 2) {
-				//checking that we're not going backwards
-				if(dist(pathTiles[i][0],pathTiles[i][1],toX,toY) > dist(x,y,toX,toY)) {
+				if(!legalPosition(pathX,pathY,1,-1)){
+					// Destination is valid square
 					continue;
 				}
-				var newDist = dist(x,y,pathTiles[i][0],pathTiles[i][1]);
-				if(newDist > longestDist) {
-					longestDist = newDist;
-					longestIndex = i;
+				if(i >= 4){
+					// Check neighbourin squares for diagonal moves
+					var neighbour_x = parent_node[0]
+					var neighbour_y = parent_node[1] + direction[1]
+					if (!legalPosition(neighbour_x,neighbour_y,1,-1)){
+						continue
+					}
+					var neighbour_x = parent_node[0] + direction[0]
+					var neighbour_y = parent_node[1]
+					if (!legalPosition(neighbour_x,neighbour_y,1,-1)){
+						continue
+					}
 				}
+
+				if (pathX in explored){
+					if (pathY in explored[pathX]){
+						continue
+					} else {
+						explored[pathX][pathY] = true
+					}
+				} else{
+					explored[pathX] = {}
+					explored[pathX][pathY] = true
+				}
+
+				new_node = [pathX, pathY, parent_node];
+				nodes.push(new_node);
 			}
+
 		}
-		if(longestIndex != -1) {
-			x = pathTiles[longestIndex][0];
-			y = pathTiles[longestIndex][1];
+
+		step_size = 2; // running
+		
+		if(pathTiles.length <= step_size){
+			// Step to the destination
+			x = pathTiles[0][0];
+			y = pathTiles[0][1];
+
 		} else {
-			//console.log("No more tiles to path to!");
+			// Move two steps forward
+			x = pathTiles[pathTiles.length-step_size-1][0];
+			y = pathTiles[pathTiles.length-step_size-1][1];
 		}
 
 
