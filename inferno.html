@@ -148,6 +148,12 @@ var RANGE = [5,4,15,1,15,15];
 var CD = [0,3,3,4,4,4];
 var HEALTH = [99,25,40,75,130,220]
 var DAMAGE = [0,19,29,49,46,70]
+
+// Player DPS
+var ACCURACY = [0, 4672, 0.5630, 0.6858, 0.6858, 0.6858];
+var MAX_HIT = 21
+var ATTACK_SPEED = 2;
+
 var zuk_safe_spots = [[3,0],[9,0],[14,0],[19,0],[25,0]];
 
 var pillars = [[0,9],[17,7],[10,23]];
@@ -204,6 +210,7 @@ var pray = 0;
 var praysOn = [0,0,0]
 var praysJustOn = [0,0,0]
 var renderingPray = 0;
+var ticks_since_attack = 100;
 
 var spawnPos = [16,5];
 
@@ -854,6 +861,7 @@ function step() {
 	if(metronome) {
 		new Audio("bonk.ogg").play();
 	}
+	ticks_since_attack++;
 
 	updatePrayDisplay();
 
@@ -976,7 +984,13 @@ function step() {
 		if(attacking == undefined) {
 			pathToDestTile();
 		} else {
-			mobs[attacking][6]-=randInt(0,20);
+			if(ticks_since_attack >= ATTACK_SPEED){
+				if (Math.random() < ACCURACY[mobs[attacking][2]]){
+					mobs[attacking][6]-=randInt(0,MAX_HIT);	
+				}
+				ticks_since_attack = 0;
+			}
+
 			if(mobs[attacking][6] <= 0) {
 				mobs.splice(attacking,1);
 				attacking = undefined;
