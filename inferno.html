@@ -176,6 +176,9 @@ var spawns = [[1,5],[22,5],[3,11],[23,12],[16,17],[5,23],[23,25],[1,28],[15,28]]
 
 var darkTheme = true;
 
+var damage_taken = 0
+var prayer_used = 0
+var ticks_wasted = 0
 
 
 function toggleTheme() {
@@ -337,6 +340,11 @@ function beginWave(bats,blob,melee,ranger,mager) {
 	getReady = true;
 	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);spawnPos = JSON.parse(JSON.stringify(selected)); getReady = false;},1000);
 	
+// Trackers
+damage_taken = 0
+prayer_used = 0
+ticks_wasted = 0
+
 }
 var waves = [
 	[1,0,0,0,0],
@@ -420,7 +428,6 @@ function spawnSelectedWave() {
 	}
 
 	reset();
-	console.log(v > 0);
 	var w = waves[v-1];
 	beginWave(w[0],w[1],w[2],w[3],w[4])
 
@@ -864,12 +871,19 @@ function step() {
 		new Audio("bonk.ogg").play();
 	}
 	ticks_since_attack++;
+	if ((ticks_since_attack>ATTACK_SPEED) & (mobs.length > 0)){
+		ticks_wasted++;
+	}
+
 
 	updatePrayDisplay();
 
 	last3Prays.unshift(pray);
 	last3Prays.splice(31);
 
+	if ((last3Prays[0] != 0) & (last3Prays[1] != 0)){
+		prayer_used++;
+	}
 	if(mode==0/* && mobs.length>0*/){
 		
 		var line = []
@@ -910,7 +924,7 @@ function step() {
 				}
 
 				if (mob[5] > CD[t]){
-					// No movement right after melee dig
+					// No movement right after melee dig. 8 ticks after the dig it should be able to move again.
 					dx = mob[0]
 					dy = mob[1]
 				}   
@@ -925,6 +939,7 @@ function step() {
 					mob[1] = dy;
 				}
 
+				// Melee dig mechanic
 				if (mob[2] == 3){
 						if (
 								(
@@ -976,7 +991,9 @@ function step() {
 				continue;
 			}
 
-			health -= randInt(0,DAMAGE[tape[0][i]]);
+			hit = randInt(0,DAMAGE[tape[0][i]])
+			health -= hit;
+			damage_taken += hit;
 		}
 		
 		if(tape.length > 30) {
@@ -1204,6 +1221,20 @@ function drawWave() {
 		ctx.font = "50px Verdana";
 		ctx.fillStyle = "white";
 		ctx.fillText("Get Ready!",(can.width-6*size)/2,can.height/2);
+	} else if((mobs.length == 0) & (ticks_wasted > 0)) {
+		ctx.fillStyle = "white";
+		ctx.textBaseline = "top";
+		ctx.textAlign="left";
+		ctx.font = "15px Verdana";
+		ctx.fillStyle = "black"
+		ctx.fillText(
+			"Wave compelted!\n" + 
+			"Ticks wasted: " + ticks_wasted + " " +
+			"Prayer used: " + prayer_used + " " +
+			"Damage taken: " + damage_taken + " "
+
+
+			,5,5);
 	}
 	if(health < 0) {
 		ctx.fillStyle = "white";
@@ -1213,6 +1244,7 @@ function drawWave() {
 		ctx.fillStyle = "red"
 		ctx.fillText("(You are currently dead, but you may keep going if you'd like.)",5,5);
 	}
+	
 }
 
 function loop() {
