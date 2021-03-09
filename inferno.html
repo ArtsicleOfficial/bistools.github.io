@@ -134,6 +134,11 @@ Toggle Pillars:
 <div class="group">
 	This is a mod of the original: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>  
 </div>
+<div class="group">
+	Instructions:<br>
+	Left mouse button: attack if possible<br>
+	Right mouse button: walk<br>
+</div>
 </br>
 <script>
 var SOUNDS = ["hit.ogg","bat.ogg","blob.ogg","meleer.ogg","ranger.ogg","mager.ogg"];
@@ -480,10 +485,12 @@ document.getElementById("map").addEventListener('mousedown',function(e){
 			selected[1] = y;
 		} else {
 			var collidedWith = -1;
-			for(var i in mobs) {
-				if(doesCollide(x,y,1,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]])) {
-					collidedWith = i;
-					break;
+			if(e.buttons == 1){
+				for(var i in mobs) {
+					if(doesCollide(x,y,1,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]])) {
+						collidedWith = i;
+						break;
+					}
 				}
 			}
 			if(collidedWith == -1) {
