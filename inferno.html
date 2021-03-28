@@ -78,6 +78,9 @@ body {
 	height: 34px;
 	cursor:pointer;
 }
+.smalltext {
+	font-size: 16px;
+}
 
 .invisible {
 	opacity: 0;
@@ -135,12 +138,13 @@ Toggle Pillars:
 </div>
 <br>
 <div class="group">
-	This is a mod of the original: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>  
+	Mod by <a target="_blank" href="https://github.com/ArtsicleOfficial">nyqbgcd</a> with contributions by <a target="_blank" href="https://github.com/hjpulkki">hjpulkki</a>. Original by <a target="_blank" href="https://github.com/bistools">BISTools</a>: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>  
 </div>
-<div class="group">
+<br/>
+<div class="group smalltext">
 	Instructions:<br>
-	Left mouse button: attack if possible<br>
-	Right mouse button: walk<br>
+	Left mouse button: Attack if possible<br>
+	Right mouse button: Walk<br>
 </div>
 </br>
 <script>
@@ -941,8 +945,7 @@ function step() {
 
 				// Melee dig mechanic
 				if (mob[2] == 3){
-					//todo: investigate bug where melee appears in a level ith no melees
-					//console.log("MELEE")
+					console.log("MELEE")
 					if (((mob[5] <= -16) & (Math.random() < 0.1)) | (mob[5] <= -50 )) {
 						meleeDig(i)
 						mob[5] = 12  // Reset attack counter. This many ticks before the next attack
@@ -1173,6 +1176,9 @@ function drawWave() {
 			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
 				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][Math.abs(t)]
 				ctx.fillRect(offset+size*j,size*i,size,size)
+					if(i == 0) {
+					console.log(t + "," + last3Prays[i] + ":" + (prays.range != last3Prays[i]));
+				}
 				if((t == types.mager && last3Prays[i] != prays.mage) || (t == types.ranger && last3Prays[i] != prays.range) || (t == types.melee && last3Prays[i] != prays.melee) || (t == types.blob && !((last3Prays[i] == prays.mage || last3Prays[i] == prays.range) && (last3Prays[i+3] == prays.mage || last3Prays[i+3] == prays.range) && (last3Prays[i] != last3Prays[i+3])))) {
 					ctx.fillStyle = "rgb(140,50,20)";
 					ctx.fillRect(offset + size*j,size*i,4,4);
