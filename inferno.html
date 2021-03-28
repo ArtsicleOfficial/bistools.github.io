@@ -1,180 +1,228 @@
 <html>
-<head>
-<title>Inferno LOS</title>
- <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
-<style>
-#map{
-	border:1px solid black;
-	display:inline-block;
-	background-color:"black";
-}
-.flip {
-	transform: scale(-1,-1);
-}
-#tape{
-	display: inline-block;
-	vertical-align: top;
+    <head>
+        <title>Inferno LOS</title>
+        <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
-}
-.group {
-	background-color: rgb(40,20,0,.5);
-	color:white;
-	font-family:Verdana;
-	font-size: 24px;
-}
-.light {
-	background-color:white;
-}
-body {
-	background-color: black;
-}
-button, input{
-	background-color: orange;
-	color: black;
-	outline-color:black;
-	outline-style:solid;
-	outline-width: 2px;
-	border:none;
-	margin-right: 3px;
-	margin-top: none;
-}
+        <style>
+        #map {
+            border: 1px solid black;
+            display: inline-block;
+            background-color: "black";
+        }
 
-button:hover {
-	outline-color: gray;
-}
-button:active {
-	outline-color: white;
-}
-body {
-	user-select: none;
-	-moz-user-select: none;
-}
-#pray {
-	width: 198px;
-	height: 272px;
-}
-#mage {
-	position: relative;
-	left: 45px;
-	top: 125px;
-	width: 34px;
-	height: 34px;
-	cursor:pointer;
-}
-#melee {
-	position: relative;
-	left: 42px;
-	top: 125px;
-	width: 34px;
-	height: 34px;
-	cursor:pointer;
-}
-#range {
-	position: relative;
-	left: 44px;
-	top: 125px;
-	width: 34px;
-	height: 34px;
-	cursor:pointer;
-}
-.smalltext {
-	font-size: 16px;
-}
+        .flip {
+            transform: scale(-1, -1);
+        }
 
-.invisible {
-	opacity: 0;
-}
-</style>
-</head>
-<body>
-<div class="group">
-Custom NPC Spawns: 
-<button onclick="remove()">Clear</button>
-<button onclick="place()">Place NPC (`/~)</button>
-<button onclick="meleeDigAll()">Melee Dig</button>
-|
-<button onclick="setMode(0)">Player (1)</button>
-<button onclick="setMode(1)">Bat (2)</button>
-<button onclick="setMode(2)">Blob (3)</button>
-<button onclick="setMode(3)">Melee (4)</button>
-<button onclick="setMode(4)">Ranger (5)</button>
-<button onclick="setMode(5)">Mager (6)</button>
-</div>
-<br>
-<div class="group">
-Misc: 
-<button onclick="toggle()" id="paused">Pause (Space)</button>
-<button onclick="toggleMetronome()">Toggle Metronome</button>
-<button onclick="toggleTheme()">Toggle Dark Theme</button>
-<button onclick="flip()">Toggle Camera North/South (Not Recommended)</button>
-</div>
-<br>
-<div class="group">
-Spawn Wave Randomly: 
-<button onclick="retry()">Retry Wave</button>
- | 
-<input type="text" id="wavenumber" placeholder="Enter Wave #..."><button onclick="spawnSelectedWave();">Spawn Wave Number</button> | 
+        #tape {
+            display: inline-block;
+            vertical-align: top;
 
-<button onclick="beginWave(7,2,0,0,0)">Spawn Nightmare</button>
-<button onclick="beginWave(1,2,2,2,2)">Spawn Ultimate Challenge</button>
-</div>
-<br>
-<div class="group">
-Toggle Pillars: 
-<button onclick="togglePillar(0)">Toggle W Pillar</button>
-<button onclick="togglePillar(1)">Toggle N Pillar</button>
-<button onclick="togglePillar(2)">Toggle S Pillar</button>
-</div>
-<br>
-<br>
-<div style="display:inline-flex;flex-flow:row wrap;justify-content:flex-start;align-items:flex-end;" class="rightSide">
-<canvas id="map" onselectstart="return false" oncontextmenu="return false"></canvas>
-<div class="rightSide" id="pray" style="background-image: url('pray.png');">
-<img src="mage.png" id="mage" onmousedown="window.setTimeout(magePray,50);"/>
-<img src="range.png" onmousedown="window.setTimeout(rangePray,50);"class="" id="range"/>
-<img src="melee.png" onmousedown="window.setTimeout(meleePray,50);"class="" id="melee"/>
-</div>
-</div>
-<br>
-<div class="group">
-	Mod by <a target="_blank" href="https://github.com/ArtsicleOfficial">nyqbgcd</a> with contributions by <a target="_blank" href="https://github.com/hjpulkki">hjpulkki</a>. Original by <a target="_blank" href="https://github.com/bistools">BISTools</a>: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>  
-</div>
-<br/>
-<div class="group smalltext">
-	Instructions:<br>
-	Left mouse button: Attack if possible<br>
-	Right mouse button: Walk<br>
-</div>
-</br>
-<script>
-var SOUNDS = ["hit.ogg","bat.ogg","blob.ogg","meleer.ogg","ranger.ogg","mager.ogg"];
-var SIZE = [1,2,3,4,3,4];
-var RANGE = [5,4,15,1,15,15];
-var CD = [0,3,3,4,4,4];
-var HEALTH = [99,25,40,75,130,220]
-var DAMAGE = [0,19,29,49,46,70]
+        }
+
+        .group {
+            background-color: rgb(40, 20, 0, .5);
+            color: white;
+            font-family: Verdana;
+            font-size: 24px;
+        }
+
+        .light {
+            background-color: white;
+        }
+
+        body {
+            background-color: black;
+        }
+
+        button,
+        input {
+            background-color: orange;
+            color: black;
+            outline-color: black;
+            outline-style: solid;
+            outline-width: 2px;
+            border: none;
+            margin-right: 3px;
+            margin-top: none;
+        }
+
+        button:hover {
+            outline-color: gray;
+        }
+
+        button:active {
+            outline-color: white;
+        }
+
+        body {
+            user-select: none;
+            -moz-user-select: none;
+        }
+
+        #pray {
+            width: 198px;
+            height: 272px;
+        }
+
+        #mage {
+            position: relative;
+            left: 45px;
+            top: 125px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+        }
+
+        #melee {
+            position: relative;
+            left: 42px;
+            top: 125px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+        }
+
+        #range {
+            position: relative;
+            left: 44px;
+            top: 125px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+        }
+
+        .smalltext {
+            font-size: 16px;
+        }
+
+        .invisible {
+            opacity: 0;
+        }
+        </style>
+    </head>
+
+    <body>
+        <div class="group">
+            Custom NPC Spawns:
+            <button onclick="remove()">Clear</button>
+            <button onclick="place()">Place NPC (`/~)</button>
+            <button onclick="meleeDigAll()">Melee Dig</button>
+            |
+            <button onclick="setMode(0)">Player (1)</button>
+            <button onclick="setMode(1)">Bat (2)</button>
+            <button onclick="setMode(2)">Blob (3)</button>
+            <button onclick="setMode(3)">Melee (4)</button>
+            <button onclick="setMode(4)">Ranger (5)</button>
+            <button onclick="setMode(5)">Mager (6)</button>
+        </div>
+        <br>
+        <div class="group">
+            Misc:
+            <button onclick="toggle()" id="paused">Pause (Space)</button>
+            <button onclick="toggleMetronome()">Toggle Metronome</button>
+            <button onclick="toggleTheme()">Toggle Dark Theme</button>
+            <button onclick="flip()">Toggle Camera North/South (Not Recommended)</button>
+        </div>
+        <br>
+        <div class="group">
+            Spawn Wave Randomly:
+            <button onclick="retry()">Retry Wave</button>
+            |
+            <input type="text" id="wavenumber" placeholder="Enter Wave #..."><button onclick="spawnSelectedWave();">Spawn Wave Number</button> |
+
+            <button onclick="beginWave(7,2,0,0,0)">Spawn Nightmare</button>
+            <button onclick="beginWave(1,2,2,2,2)">Spawn Ultimate Challenge</button>
+        </div>
+        <br>
+        <div class="group">
+            Toggle Pillars:
+            <button onclick="togglePillar(0)">Toggle W Pillar</button>
+            <button onclick="togglePillar(1)">Toggle N Pillar</button>
+            <button onclick="togglePillar(2)">Toggle S Pillar</button>
+        </div>
+        <br>
+        <br>
+        <div style="display:inline-flex;flex-flow:row wrap;justify-content:flex-start;align-items:flex-end;" class="rightSide">
+            <canvas id="map" onselectstart="return false" oncontextmenu="return false"></canvas>
+            <div class="rightSide" id="pray" style="background-image: url('pray.png');">
+                <img src="mage.png" id="mage" onmousedown="window.setTimeout(magePray,50);" />
+                <img src="range.png" onmousedown="window.setTimeout(rangePray,50);" class="" id="range" />
+                <img src="melee.png" onmousedown="window.setTimeout(meleePray,50);" class="" id="melee" />
+            </div>
+        </div>
+        <br>
+        <div class="group">
+            Mod by <a target="_blank" href="https://github.com/ArtsicleOfficial">nyqbgcd</a> with contributions by <a target="_blank" href="https://github.com/hjpulkki">hjpulkki</a>. Original by <a target="_blank" href="https://github.com/bistools">BISTools</a>: <a target="_blank" href="https://bistools.github.io/inferno.html">https://bistools.github.io/inferno.html</a>
+        </div>
+        <br />
+        <div class="group smalltext">
+            Instructions:<br>
+            Left mouse button: Attack if possible<br>
+            Right mouse button: Walk<br>
+        </div>
+        </br>
+        <script>
+var SOUNDS = ["hit.ogg", "bat.ogg", "blob.ogg", "meleer.ogg", "ranger.ogg", "mager.ogg"];
+var SIZE = [1, 2, 3, 4, 3, 4];
+var RANGE = [5, 4, 15, 1, 15, 15];
+var CD = [0, 3, 3, 4, 4, 4];
+var HEALTH = [99, 25, 40, 75, 130, 220]
+var DAMAGE = [0, 19, 29, 49, 46, 70]
 
 // Player DPS
 var ACCURACY = [0, 4672, 0.5630, 0.6858, 0.6858, 0.6858];
 var MAX_HIT = 21
 var ATTACK_SPEED = 2;
 
-var zuk_safe_spots = [[3,0],[9,0],[14,0],[19,0],[25,0]];
+var zuk_safe_spots = [
+    [3, 0],
+    [9, 0],
+    [14, 0],
+    [19, 0],
+    [25, 0]
+];
 
-var pillars = [[0,9],[17,7],[10,23]];
-var filters = [true,true,true];
+var pillars = [
+    [0, 9],
+    [17, 7],
+    [10, 23]
+];
+var filters = [true, true, true];
 
 var metronome = false;
 
-var types = {player:0,bat:1,blob:2,melee:3,ranger:4,mager:5}
-var prays = {none:0,mage:1,range:2,melee:3}
+var types = {
+    player: 0,
+    bat: 1,
+    blob: 2,
+    melee: 3,
+    ranger: 4,
+    mager: 5
+}
+var prays = {
+    none: 0,
+    mage: 1,
+    range: 2,
+    melee: 3
+}
 
 var playing = true;
 
 var rotatedSouth = true;
 
-var spawns = [[1,5],[22,5],[3,11],[23,12],[16,17],[5,23],[23,25],[1,28],[15,28]];
+var spawns = [
+    [1, 5],
+    [22, 5],
+    [3, 11],
+    [23, 12],
+    [16, 17],
+    [5, 23],
+    [23, 25],
+    [1, 28],
+    [15, 28]
+];
 //zuk spawns [9,7],[18,7]
 
 
@@ -186,29 +234,29 @@ var ticks_wasted = 0
 
 
 function toggleTheme() {
-	darkTheme = !darkTheme;
-	if(darkTheme) {
-		document.body.className = "";
-		window.localStorage.setItem("infernodark","true")
-	} else {
-		document.body.className = "light"
-		window.localStorage.setItem("infernodark","false")
-	}
+    darkTheme = !darkTheme;
+    if (darkTheme) {
+        document.body.className = "";
+        window.localStorage.setItem("infernodark", "true")
+    } else {
+        document.body.className = "light"
+        window.localStorage.setItem("infernodark", "false")
+    }
 }
 
-if(window.localStorage.getItem("infernodark") === "false") {
-	toggleTheme();
+if (window.localStorage.getItem("infernodark") === "false") {
+    toggleTheme();
 }
 
 var mode = 0;
-var selected = [16,5];
+var selected = [16, 5];
 var mobs = [];
 var tape = [];
 
 
 var health = 99;
 
-var destTile = [16,5];
+var destTile = [16, 5];
 var attacking = undefined;
 
 //0 = none
@@ -216,67 +264,70 @@ var attacking = undefined;
 //2 = range
 //3 = melee
 var pray = 0;
-var praysOn = [0,0,0]
-var praysJustOn = [0,0,0]
+var praysOn = [0, 0, 0]
+var praysJustOn = [0, 0, 0]
 var renderingPray = 0;
 var ticks_since_attack = 100;
 
-var spawnPos = [16,5];
+var spawnPos = [16, 5];
 
 var mageEle = document.getElementById("mage")
 var rangeEle = document.getElementById("range")
 var meleeEle = document.getElementById("melee")
 
 function toggle() {
-	playing = !playing;
-	document.getElementById("paused").innerHTML = playing ? "Pause (Space)" : "Play (Space)";
+    playing = !playing;
+    document.getElementById("paused").innerHTML = playing ? "Pause (Space)" : "Play (Space)";
 }
+
 function toggleMetronome() {
-	metronome = !metronome;
+    metronome = !metronome;
 }
 
 function retry() {
-	if(mode == 0) {
-		selected = JSON.parse(JSON.stringify(spawnPos));
-		destTile = JSON.parse(JSON.stringify(spawnPos));
-	}
-	reset();
-	health=99;
-	drawWave();
+    if (mode == 0) {
+        selected = JSON.parse(JSON.stringify(spawnPos));
+        destTile = JSON.parse(JSON.stringify(spawnPos));
+    }
+    reset();
+    health = 99;
+    drawWave();
 }
 
 function magePray() {
-	if(pray == 1) {
-		pray = 0;
-		mageEle.className = "invisible"
-	} else {
-		pray = 1
-		mageEle.className = ""
-		praysOn[0] = true;
-		praysJustOn[0] = true;
-	}
+    if (pray == 1) {
+        pray = 0;
+        mageEle.className = "invisible"
+    } else {
+        pray = 1
+        mageEle.className = ""
+        praysOn[0] = true;
+        praysJustOn[0] = true;
+    }
 }
+
 function rangePray() {
-	if(pray == 2) {
-		pray = 0;
-		rangeEle.className = "invisible"
-	} else {
-		pray = 2
-		rangeEle.className = ""
-		praysOn[1] = true;
-		praysJustOn[1] = true;
-	}
+    if (pray == 2) {
+        pray = 0;
+        rangeEle.className = "invisible"
+    } else {
+        pray = 2
+        rangeEle.className = ""
+        praysOn[1] = true;
+        praysJustOn[1] = true;
+    }
 }
+
 function meleePray() {
-	if(pray == 3) {
-		pray = 0;
-		meleeEle.className = "invisible"
-	} else {
-		pray = 3
-		meleeEle.className = ""
-		praysOn[2] = true;
-		praysJustOn[2] = true;
-	}
+    if (pray == 3) {
+        pray = 0;
+        meleeEle.className = "invisible"
+    } else {
+        pray = 3
+        meleeEle.className = ""
+        praysOn[2] = true;
+        praysJustOn[2] = true;
+    }
 }
 
 
@@ -285,996 +336,1029 @@ var getReady = false;
 var can = document.getElementById("map")
 var ctx = can.getContext("2d");
 var size = 20;
-var player = [16*size,5*size];
-can.width = size*(29+9)
-can.height = size*30
+var player = [16 * size, 5 * size];
+can.width = size * (29 + 9)
+can.height = size * 30
 
 function flip() {
-	if(can.className == "flip") {
-		can.className = "";
-	} else {
-		can.className = "flip";
-	}
+    if (can.className == "flip") {
+        can.className = "";
+    } else {
+        can.className = "flip";
+    }
 }
 
-function randInt(x,y) {
-	return Math.round(Math.random()*(y-x))+x
+function randInt(x, y) {
+    return Math.round(Math.random() * (y - x)) + x
 }
 
 function getRandomSpawn(spawnsUsed) {
-	var done = false
-	var picked = -1;
-	//attempts
-	var att = 0;
-	while(!done && att < 1000) {
-		var i = randInt(0,8);
-		var searched = false;
-		for(var j in spawnsUsed) {
-			if(i == spawnsUsed[j]) {
-				searched = true;
-			}
-		}
-		if(!searched) {
-			done = true;
-			picked = i;
-		}
-		att++;
-	}
-	return picked;
+    var done = false
+    var picked = -1;
+    //attempts
+    var att = 0;
+    while (!done && att < 1000) {
+        var i = randInt(0, 8);
+        var searched = false;
+        for (var j in spawnsUsed) {
+            if (i == spawnsUsed[j]) {
+                searched = true;
+            }
+        }
+        if (!searched) {
+            done = true;
+            picked = i;
+        }
+        att++;
+    }
+    return picked;
 }
-function spawnEnemy(enemyID,amount,spawnsUsed) {
-	for(var i = 0; i < amount; i++) {
-		var s = getRandomSpawn(spawnsUsed);
-		//couldnt find spawn
-		if(s == -1) {
-			return spawnsUsed;
-		}
-		if(enemyID == 2) {
-			mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID],false])
-		} else {
-			mobs.push([spawns[s][0],spawns[s][1],enemyID,spawns[s][0],spawns[s][1],0,HEALTH[enemyID]])
-		}
-		spawnsUsed.push(s)
-	}
 
-	return spawnsUsed;
+function spawnEnemy(enemyID, amount, spawnsUsed) {
+    for (var i = 0; i < amount; i++) {
+        var s = getRandomSpawn(spawnsUsed);
+        //couldnt find spawn
+        if (s == -1) {
+            return spawnsUsed;
+        }
+        if (enemyID == 2) {
+            mobs.push([spawns[s][0], spawns[s][1], enemyID, spawns[s][0], spawns[s][1], 0, HEALTH[enemyID], false])
+        } else {
+            mobs.push([spawns[s][0], spawns[s][1], enemyID, spawns[s][0], spawns[s][1], 0, HEALTH[enemyID]])
+        }
+        spawnsUsed.push(s)
+    }
+
+    return spawnsUsed;
 }
-function beginWave(bats,blob,melee,ranger,mager) {
-	remove();
-	getReady = true;
-	window.setTimeout(function() {spawn(bats,blob,melee,ranger,mager);spawnPos = JSON.parse(JSON.stringify(selected)); getReady = false;},1000);
-	
-// Trackers
-damage_taken = 0
-prayer_used = 0
-ticks_wasted = 0
+
+function beginWave(bats, blob, melee, ranger, mager) {
+    remove();
+    getReady = true;
+    window.setTimeout(function () {
+        spawn(bats, blob, melee, ranger, mager);
+        spawnPos = JSON.parse(JSON.stringify(selected));
+        getReady = false;
+    }, 1000);
+
+    // Trackers
+    damage_taken = 0
+    prayer_used = 0
+    ticks_wasted = 0
 
 }
 var waves = [
-	[1,0,0,0,0],
-	[2,0,0,0,0],
-	[0,0,0,0,0],
-	[0,1,0,0,0],
-	[1,1,0,0,0],
-	[2,1,0,0,0],
-	[0,2,0,0,0], //7
-	[0,0,0,0,0],
-	[0,0,1,0,0],
-	[1,0,1,0,0],
-	[2,0,1,0,0],
-	[0,1,1,0,0],
-	[1,1,1,0,0],
-	[2,1,1,0,0],
-	[0,2,1,0,0], //15
-	[0,0,2,0,0],
-	[0,0,0,0,0], //17
-	[0,0,0,1,0],
-	[1,0,0,1,0],
-	[2,0,0,1,0],
-	[0,1,0,1,0], //21
-	[1,1,0,1,0],
-	[2,1,0,1,0], //23
-	[0,2,0,1,0], //24
-	[0,0,1,1,0], //25
-	[1,0,1,1,0], //26
-	[2,0,1,1,0], //27
-	[0,1,1,1,0], //28
-	[1,1,1,1,0], //29
-	[2,1,1,1,0], //30
-	[0,2,1,1,0], //31
-	[0,0,2,1,0], //32
-	[0,0,0,2,0], //33
-	[0,0,0,0,0], //34
-	[0,0,0,0,1], //35
-	[1,0,0,0,1], //36
-	[2,0,0,0,1], //37
-	[0,1,0,0,1], //38
-	[1,1,0,0,1], //39
-	[2,1,0,0,1], //40
-	[0,2,0,0,1], //41 double blob mage
-	[0,0,1,0,1], //42
-	[1,0,1,0,1], //43
-	[2,0,1,0,1], //44
-	[0,1,1,0,1], //45
-	[1,1,1,0,1], //46
-	[2,1,1,0,1], //47
-	[0,2,1,0,1], //48 double blob melee mage
-	[0,0,2,0,1], //49 2 melee mage
-	[0,0,0,1,1], //50
-	[1,0,0,1,1], //51
-	[2,0,0,1,1], //52
-	[0,1,0,1,1], //53
-	[1,1,0,1,1], //54
-	[2,1,0,1,1], //55
-	[0,2,0,1,1], //56
-	[0,0,1,1,1], //57
-	[1,0,1,1,1], //58
-	[2,0,1,1,1], //59
-	[0,1,1,1,1], //60
-	[1,1,1,1,1], //61
-	[2,1,1,1,1], //62
-	[0,2,1,1,1], //63
-	[0,0,2,1,1], //64
-	[0,0,0,2,1], //65
-	[0,0,0,0,2]  //66
+    [1, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0],
+    [1, 1, 0, 0, 0],
+    [2, 1, 0, 0, 0],
+    [0, 2, 0, 0, 0], //7
+    [0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 0],
+    [2, 0, 1, 0, 0],
+    [0, 1, 1, 0, 0],
+    [1, 1, 1, 0, 0],
+    [2, 1, 1, 0, 0],
+    [0, 2, 1, 0, 0], //15
+    [0, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0], //17
+    [0, 0, 0, 1, 0],
+    [1, 0, 0, 1, 0],
+    [2, 0, 0, 1, 0],
+    [0, 1, 0, 1, 0], //21
+    [1, 1, 0, 1, 0],
+    [2, 1, 0, 1, 0], //23
+    [0, 2, 0, 1, 0], //24
+    [0, 0, 1, 1, 0], //25
+    [1, 0, 1, 1, 0], //26
+    [2, 0, 1, 1, 0], //27
+    [0, 1, 1, 1, 0], //28
+    [1, 1, 1, 1, 0], //29
+    [2, 1, 1, 1, 0], //30
+    [0, 2, 1, 1, 0], //31
+    [0, 0, 2, 1, 0], //32
+    [0, 0, 0, 2, 0], //33
+    [0, 0, 0, 0, 0], //34
+    [0, 0, 0, 0, 1], //35
+    [1, 0, 0, 0, 1], //36
+    [2, 0, 0, 0, 1], //37
+    [0, 1, 0, 0, 1], //38
+    [1, 1, 0, 0, 1], //39
+    [2, 1, 0, 0, 1], //40
+    [0, 2, 0, 0, 1], //41 double blob mage
+    [0, 0, 1, 0, 1], //42
+    [1, 0, 1, 0, 1], //43
+    [2, 0, 1, 0, 1], //44
+    [0, 1, 1, 0, 1], //45
+    [1, 1, 1, 0, 1], //46
+    [2, 1, 1, 0, 1], //47
+    [0, 2, 1, 0, 1], //48 double blob melee mage
+    [0, 0, 2, 0, 1], //49 2 melee mage
+    [0, 0, 0, 1, 1], //50
+    [1, 0, 0, 1, 1], //51
+    [2, 0, 0, 1, 1], //52
+    [0, 1, 0, 1, 1], //53
+    [1, 1, 0, 1, 1], //54
+    [2, 1, 0, 1, 1], //55
+    [0, 2, 0, 1, 1], //56
+    [0, 0, 1, 1, 1], //57
+    [1, 0, 1, 1, 1], //58
+    [2, 0, 1, 1, 1], //59
+    [0, 1, 1, 1, 1], //60
+    [1, 1, 1, 1, 1], //61
+    [2, 1, 1, 1, 1], //62
+    [0, 2, 1, 1, 1], //63
+    [0, 0, 2, 1, 1], //64
+    [0, 0, 0, 2, 1], //65
+    [0, 0, 0, 0, 2] //66
 ]
 
 function spawnSelectedWave() {
-	var v = parseInt(document.getElementById("wavenumber").value);
-	if(v === NaN || v === undefined) {
-		return;
-	}
-	if(v < 1 || v > 66) {
-		return;
-	}
-	if(!(v > 0)) {
-		return;
-	}
+    var v = parseInt(document.getElementById("wavenumber").value);
+    if (v === NaN || v === undefined) {
+        return;
+    }
+    if (v < 1 || v > 66) {
+        return;
+    }
+    if (!(v > 0)) {
+        return;
+    }
 
-	reset();
-	var w = waves[v-1];
-	beginWave(w[0],w[1],w[2],w[3],w[4])
+    reset();
+    var w = waves[v - 1];
+    beginWave(w[0], w[1], w[2], w[3], w[4])
 
-	//document.getElementById("wavenumber").value = ""
-}
-function spawn(bats,blobs,melee,ranger,mager) {
-	//Only 9 spawns!
-	if(bats+blobs+melee+ranger+mager > 9) {
-		return;
-	}
-	var spawnsUsed = [];
-	spawnsUsed = spawnEnemy(1,bats,spawnsUsed);
-	spawnsUsed = spawnEnemy(2,blobs,spawnsUsed);
-	spawnsUsed = spawnEnemy(3,melee,spawnsUsed);
-	spawnsUsed = spawnEnemy(4,ranger,spawnsUsed);
-	spawnsUsed = spawnEnemy(5,mager,spawnsUsed);
+    //document.getElementById("wavenumber").value = ""
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-   drawWave()
-});
-document.addEventListener('DOMContentLoaded',function(){
-   drawWave()
-});
-window.addEventListener("keypress",function(e) {
-	if(document.getElementById("wavenumber") == document.activeElement) {
-		return true;
-	}
-	e.preventDefault();
-});
-window.addEventListener("keyup",function(e) {
-	if(document.getElementById("wavenumber") == document.activeElement) {
-		return true;
-	}
-	switch(e.keyCode) {
-		case 32:
-			toggle();
-			break;
-		case 192:
-			place();
-			break;
-		case 49:
-			setMode(0);
-			break;
-		case 50:
-			setMode(1);
-			break;
-		case 51:
-			setMode(2);
-			break;
-		case 52:
-			setMode(3);
-			break;
-		case 53:
-			setMode(4);
-			break;
-		case 54:
-			setMode(5);
-			break;
+function spawn(bats, blobs, melee, ranger, mager) {
+    //Only 9 spawns!
+    if (bats + blobs + melee + ranger + mager > 9) {
+        return;
+    }
+    var spawnsUsed = [];
+    spawnsUsed = spawnEnemy(1, bats, spawnsUsed);
+    spawnsUsed = spawnEnemy(2, blobs, spawnsUsed);
+    spawnsUsed = spawnEnemy(3, melee, spawnsUsed);
+    spawnsUsed = spawnEnemy(4, ranger, spawnsUsed);
+    spawnsUsed = spawnEnemy(5, mager, spawnsUsed);
+}
 
-	}
-	return false;
+document.addEventListener('DOMContentLoaded', function () {
+    drawWave()
+});
+document.addEventListener('DOMContentLoaded', function () {
+    drawWave()
+});
+window.addEventListener("keypress", function (e) {
+    if (document.getElementById("wavenumber") == document.activeElement) {
+        return true;
+    }
+    e.preventDefault();
+});
+window.addEventListener("keyup", function (e) {
+    if (document.getElementById("wavenumber") == document.activeElement) {
+        return true;
+    }
+    switch (e.keyCode) {
+    case 32:
+        toggle();
+        break;
+    case 192:
+        place();
+        break;
+    case 49:
+        setMode(0);
+        break;
+    case 50:
+        setMode(1);
+        break;
+    case 51:
+        setMode(2);
+        break;
+    case 52:
+        setMode(3);
+        break;
+    case 53:
+        setMode(4);
+        break;
+    case 54:
+        setMode(5);
+        break;
+
+    }
+    return false;
 })
-document.getElementById("map").addEventListener('mousedown',function(e){
-	var x = e.offsetX;
-	var y = e.offsetY;
-	x = Math.floor(x/size);
-	y = Math.floor(y/size);
-	if(x<29){
-		if(mode != 0) {
-			selected[0] = x;
-			selected[1] = y;
-		} else {
-			var collidedWith = -1;
-			if(e.buttons == 1){
-				for(var i in mobs) {
-					if(doesCollide(x,y,1,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]])) {
-						collidedWith = i;
-						break;
-					}
-				}
-			}
-			if(collidedWith == -1) {
-				destTile[0] = x;
-				destTile[1] = y;
-				//if paused, teleport player to dest tile
-				if(!playing) {
-					selected[0] = x;
-					selected[1] = y;
-				}
-				attacking = undefined;
-			} else if(hasLOS(mobs[collidedWith][0], mobs[collidedWith][1],selected[0], selected[1],SIZE[mobs[collidedWith][2]],RANGE[mode],true)) {
-				destTile[0] = selected[0];
-				destTile[1] = selected[1];
-				attacking = collidedWith;
-			}
-		}
-		drawWave();
-	}
+document.getElementById("map").addEventListener('mousedown', function (e) {
+    var x = e.offsetX;
+    var y = e.offsetY;
+    x = Math.floor(x / size);
+    y = Math.floor(y / size);
+    if (x < 29) {
+        if (mode != 0) {
+            selected[0] = x;
+            selected[1] = y;
+        } else {
+            var collidedWith = -1;
+            if (e.buttons == 1) {
+                for (var i in mobs) {
+                    if (doesCollide(x, y, 1, mobs[i][0], mobs[i][1], SIZE[mobs[i][2]])) {
+                        collidedWith = i;
+                        break;
+                    }
+                }
+            }
+            if (collidedWith == -1) {
+                destTile[0] = x;
+                destTile[1] = y;
+                //if paused, teleport player to dest tile
+                if (!playing) {
+                    selected[0] = x;
+                    selected[1] = y;
+                }
+                attacking = undefined;
+            } else if (hasLOS(mobs[collidedWith][0], mobs[collidedWith][1], selected[0], selected[1], SIZE[mobs[collidedWith][2]], RANGE[mode], true)) {
+                destTile[0] = selected[0];
+                destTile[1] = selected[1];
+                attacking = collidedWith;
+            }
+        }
+        drawWave();
+    }
 });
 
-document.getElementById("map").addEventListener('wheel',function(e){
-	e.preventDefault();
-	if(e.deltaY>0){
-		step();
-		drawWave();
-	} else {
-		reset();
-		health = 99;
-		drawWave();
-	}
-	return false;
+document.getElementById("map").addEventListener('wheel', function (e) {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+        step();
+        drawWave();
+    } else {
+        reset();
+        health = 99;
+        drawWave();
+    }
+    return false;
 });
-document.addEventListener('keydown',function(e){
-	//keyboard shortcuts for future?
+document.addEventListener('keydown', function (e) {
+    //keyboard shortcuts for future?
 });
-function togglePillar(x){
-	filters[x] = !filters[x];
-	drawWave();
+
+function togglePillar(x) {
+    filters[x] = !filters[x];
+    drawWave();
 }
 
 // Melee dig code from https://github.com/iFreedive-OSRS/ifreedive-osrs.github.io/blob/master/index.html
-function meleeDig(i){
-	if (digPosition(selected[0]-3, selected[1]+3)){
-		mobs[i][0] = selected[0]-3
-		mobs[i][1] = selected[1]+3
-	} else if (digPosition(selected[0], selected[1])) {
-		mobs[i][0] = selected[0]
-		mobs[i][1] = selected[1]
-	} else if (digPosition(selected[0]-3, selected[1])) {
-		mobs[i][0] = selected[0]-3
-		mobs[i][1] = selected[1]
-	} else if (digPosition(selected[0], selected[1]+3)) {
-		mobs[i][0] = selected[0]
-		mobs[i][1] = selected[1]+3
-	} else  {
-		mobs[i][0] = selected[0]-1
-		mobs[i][1] = selected[1]+1
-	}
+function meleeDig(i) {
+    if (digPosition(selected[0] - 3, selected[1] + 3)) {
+        mobs[i][0] = selected[0] - 3
+        mobs[i][1] = selected[1] + 3
+    } else if (digPosition(selected[0], selected[1])) {
+        mobs[i][0] = selected[0]
+        mobs[i][1] = selected[1]
+    } else if (digPosition(selected[0] - 3, selected[1])) {
+        mobs[i][0] = selected[0] - 3
+        mobs[i][1] = selected[1]
+    } else if (digPosition(selected[0], selected[1] + 3)) {
+        mobs[i][0] = selected[0]
+        mobs[i][1] = selected[1] + 3
+    } else {
+        mobs[i][0] = selected[0] - 1
+        mobs[i][1] = selected[1] + 1
+    }
 }
 
-function meleeDigAll(){
-	for(var i=0;i<mobs.length;i++){
-		if (mobs[i][2] == types.melee) {
-			meleeDig(i)
-		}
-	}
-	drawWave();
-}
-function digPosition(x,y){
-	if(y-3<0 || x+3>28 || x<0 || y>29){
-		return false;
-	}
-	var collision = false;
-	for(var i=0;i<pillars.length;i++){
-		if(filters[i]){
-			collision = collision | doesCollide(x,y,4,pillars[i][0],pillars[i][1],3);
-		}
-	}
-	return !collision;
+function meleeDigAll() {
+    for (var i = 0; i < mobs.length; i++) {
+        if (mobs[i][2] == types.melee) {
+            meleeDig(i)
+        }
+    }
+    drawWave();
 }
 
-function isPillar(x,y){
-	var isPillar = false;
-	for(var j=0;j<pillars.length;j++){
-		if(filters[j]){
-			isPillar = doesCollide(x,y,1,pillars[j][0],pillars[j][1],3) || isPillar;
-		}
-	}
-	return isPillar;
+function digPosition(x, y) {
+    if (y - 3 < 0 || x + 3 > 28 || x < 0 || y > 29) {
+        return false;
+    }
+    var collision = false;
+    for (var i = 0; i < pillars.length; i++) {
+        if (filters[i]) {
+            collision = collision | doesCollide(x, y, 4, pillars[i][0], pillars[i][1], 3);
+        }
+    }
+    return !collision;
 }
-function hasLOS(x1, y1, x2, y2,s=1,r=1,isNPC=false) {
-	let dx = x2 - x1;
-	let dy = y2 - y1;
-	if(isPillar(x1,y1) || isPillar(x2,y2) || doesCollide(x1,y1,s,x2,y2,1)){
-		return false;
-	}
-	//assume range 1 is melee
-	if(r==1){
-		return (dx<s && dx>=0 && (dy==1 || dy==-s)) || (dy>-s && dy<=0 && (dx==-1 || dx==s))
-	}
-	if(isNPC){
-		var tx = Math.max(x1,Math.min(x1+s-1,x2))
-		var ty = Math.max(y1-s+1,Math.min(y1,y2))
-		return hasLOS(x2,y2,tx,ty,1,r,false);
-	}
-	let dxAbs = Math.abs(dx);
-	let dyAbs = Math.abs(dy);
-	if(dxAbs>r || dyAbs>r){
-		return false;
-	}
-	if (dxAbs > dyAbs) {
-		let xTile = x1;
-		let y = (y1 << 16) + 0x8000;
-		let slope = Math.trunc((dy << 16) / dxAbs); // Integer division
-		let xInc = (dx>0)?1:-1;
-		if (dy < 0) {
-			y -= 1; // For correct rounding
-		}
-		while (xTile !== x2) {
-			xTile += xInc;
-			let yTile = y >>> 16;
-			if (isPillar(xTile, yTile)) {
-				return false;
-			}
-			y += slope;
-			let newYTile = y >>> 16;
-			if (newYTile !== yTile && isPillar(xTile, newYTile)) {
-				return false;
-			}
-		}
 
-	} else {
-		let yTile = y1;
-		let x = (x1 << 16) + 0x8000;
-		let slope = Math.trunc((dx << 16) / dyAbs); // Integer division
-		let yInc = (dy>0)?1:-1;
-		if (dx < 0) {
-			x -= 1; // For correct rounding
-		}
-		while (yTile !== y2) {
-			yTile += yInc;
-			let xTile = x >>> 16;
-			if (isPillar(xTile, yTile)) {
-				return false;
-			}
-			x += slope;
-			let newXTile = x >>> 16;
-			if (newXTile !== xTile && isPillar(newXTile, yTile)) {
-				return false;
-			}
-		}
-		
-	}
-	return true;
+function isPillar(x, y) {
+    var isPillar = false;
+    for (var j = 0; j < pillars.length; j++) {
+        if (filters[j]) {
+            isPillar = doesCollide(x, y, 1, pillars[j][0], pillars[j][1], 3) || isPillar;
+        }
+    }
+    return isPillar;
 }
-function doesCollide(x,y,s,x2,y2,s2){
-	if(x>(x2+s2-1) || (x+s-1)<x2 || (y-s+1)>y2 || y<(y2-s2+1)){
-		return false;
-	}
-	return true;
+
+function hasLOS(x1, y1, x2, y2, s = 1, r = 1, isNPC = false) {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    if (isPillar(x1, y1) || isPillar(x2, y2) || doesCollide(x1, y1, s, x2, y2, 1)) {
+        return false;
+    }
+    //assume range 1 is melee
+    if (r == 1) {
+        return (dx < s && dx >= 0 && (dy == 1 || dy == -s)) || (dy > -s && dy <= 0 && (dx == -1 || dx == s))
+    }
+    if (isNPC) {
+        var tx = Math.max(x1, Math.min(x1 + s - 1, x2))
+        var ty = Math.max(y1 - s + 1, Math.min(y1, y2))
+        return hasLOS(x2, y2, tx, ty, 1, r, false);
+    }
+    let dxAbs = Math.abs(dx);
+    let dyAbs = Math.abs(dy);
+    if (dxAbs > r || dyAbs > r) {
+        return false;
+    }
+    if (dxAbs > dyAbs) {
+        let xTile = x1;
+        let y = (y1 << 16) + 0x8000;
+        let slope = Math.trunc((dy << 16) / dxAbs); // Integer division
+        let xInc = (dx > 0) ? 1 : -1;
+        if (dy < 0) {
+            y -= 1; // For correct rounding
+        }
+        while (xTile !== x2) {
+            xTile += xInc;
+            let yTile = y >>> 16;
+            if (isPillar(xTile, yTile)) {
+                return false;
+            }
+            y += slope;
+            let newYTile = y >>> 16;
+            if (newYTile !== yTile && isPillar(xTile, newYTile)) {
+                return false;
+            }
+        }
+
+    } else {
+        let yTile = y1;
+        let x = (x1 << 16) + 0x8000;
+        let slope = Math.trunc((dx << 16) / dyAbs); // Integer division
+        let yInc = (dy > 0) ? 1 : -1;
+        if (dx < 0) {
+            x -= 1; // For correct rounding
+        }
+        while (yTile !== y2) {
+            yTile += yInc;
+            let xTile = x >>> 16;
+            if (isPillar(xTile, yTile)) {
+                return false;
+            }
+            x += slope;
+            let newXTile = x >>> 16;
+            if (newXTile !== xTile && isPillar(newXTile, yTile)) {
+                return false;
+            }
+        }
+
+    }
+    return true;
 }
-function legalPosition(x,y,s,index){
-	if(y-(s-1)<0 || x+(s-1)>28){
-		return false;
-	}
-	var collision = false;
-	for(var i=0;i<pillars.length;i++){
-		if(filters[i]){
-			collision = collision | doesCollide(x,y,s,pillars[i][0],pillars[i][1],3);
-		}
-	}
 
-	if(index==-1){
-		// Player can walk under mobs
-		return !collision;
-	}
+function doesCollide(x, y, s, x2, y2, s2) {
+    if (x > (x2 + s2 - 1) || (x + s - 1) < x2 || (y - s + 1) > y2 || y < (y2 - s2 + 1)) {
+        return false;
+    }
+    return true;
+}
 
-	for(var i=0;i<mobs.length;i++){
-		if(i!=index){
-			collision = collision | doesCollide(x,y,s,mobs[i][0],mobs[i][1],SIZE[mobs[i][2]]);
-		}
-	}
-	return !collision;
+function legalPosition(x, y, s, index) {
+    if (y - (s - 1) < 0 || x + (s - 1) > 28) {
+        return false;
+    }
+    var collision = false;
+    for (var i = 0; i < pillars.length; i++) {
+        if (filters[i]) {
+            collision = collision | doesCollide(x, y, s, pillars[i][0], pillars[i][1], 3);
+        }
+    }
+
+    if (index == -1) {
+        // Player can walk under mobs
+        return !collision;
+    }
+
+    for (var i = 0; i < mobs.length; i++) {
+        if (i != index) {
+            collision = collision | doesCollide(x, y, s, mobs[i][0], mobs[i][1], SIZE[mobs[i][2]]);
+        }
+    }
+    return !collision;
 }
 //Uses min and max functions to bound a number to being at greatest 1 and at smallest -1, useful for directions to be multiplied by magnitudes
 function minMaxUnit(x) {
-	return Math.min(1,Math.max(x,-1))
+    return Math.min(1, Math.max(x, -1))
 }
-function dist(x,y,x2,y2) {
-	return Math.sqrt(Math.pow(x2-x,2) + Math.pow(y2-y,2))
+
+function dist(x, y, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2))
 }
 
 function pathToDestTile() {
-	//make sure mode is player
-	if(mode == 0) {
-		var x = selected[0];
-		var y = selected[1];
-		var toX = destTile[0];
-		var toY = destTile[1];
+    //make sure mode is player
+    if (mode == 0) {
+        var x = selected[0];
+        var y = selected[1];
+        var toX = destTile[0];
+        var toY = destTile[1];
 
-		// Avoid infinite loop by making sure that the destination is valid
-		if (!legalPosition(toX,toY,1,-1)){
-			return
-		}
+        // Avoid infinite loop by making sure that the destination is valid
+        if (!legalPosition(toX, toY, 1, -1)) {
+            return
+        }
 
-		var pathTiles = [];
+        var pathTiles = [];
 
-		var pathX = x;
-		var pathY = y;
+        var pathX = x;
+        var pathY = y;
 
-		var nodes = [
-			[x, y, null]
-		];
+        var nodes = [
+            [x, y, null]
+        ];
 
-		// The order of possible directions in this array determines if the player moves first straight or diagonaly
-		directions = [
-			[1, 0],
-			[0, -1],
-			[0, 1],
-			[-1, 0],
-			[1, 1],
-			[-1, 1],
-			[-1, -1],
-			[1, -1],
-		];
+        // The order of possible directions in this array determines if the player moves first straight or diagonaly
+        directions = [
+            [1, 0],
+            [0, -1],
+            [0, 1],
+            [-1, 0],
+            [1, 1],
+            [-1, 1],
+            [-1, -1],
+            [1, -1],
+        ];
 
-		// Djikstra search for the optimal route
-		var explored = {}
-		var iter = 0
-		while(nodes.length != 0){
-			var parent_node = nodes.shift()
-			
-			if((parent_node[0] == toX) & (parent_node[1] == toY)){
-				 // console.log(["Found route", parent_node[0], parent_node[1], x, y, toX, toY]);
-				while(parent_node){
-					pathTiles.push([parent_node[0], parent_node[1]]);
-					parent_node = parent_node[2];
-				}
-				break;
-			}
-			for(var i = 0; i < directions.length; i++){
-				direction = directions[i]
-				pathX = parent_node[0] + direction[0];
-				pathY = parent_node[1] + direction[1];
+        // Djikstra search for the optimal route
+        var explored = {}
+        var iter = 0
+        while (nodes.length != 0) {
+            var parent_node = nodes.shift()
 
-				if(!legalPosition(pathX,pathY,1,-1)){
-					// Destination is not a valid square
-					continue;
-				}
-				if(i >= 4){
-					// Check neighbourin squares for diagonal moves
-					var neighbour_x = parent_node[0]
-					var neighbour_y = parent_node[1] + direction[1]
-					if (!legalPosition(neighbour_x,neighbour_y,1,-1)){
-						continue
-					}
-					var neighbour_x = parent_node[0] + direction[0]
-					var neighbour_y = parent_node[1]
-					if (!legalPosition(neighbour_x,neighbour_y,1,-1)){
-						continue
-					}
-				}
+            if ((parent_node[0] == toX) & (parent_node[1] == toY)) {
+                // console.log(["Found route", parent_node[0], parent_node[1], x, y, toX, toY]);
+                while (parent_node) {
+                    pathTiles.push([parent_node[0], parent_node[1]]);
+                    parent_node = parent_node[2];
+                }
+                break;
+            }
+            for (var i = 0; i < directions.length; i++) {
+                direction = directions[i]
+                pathX = parent_node[0] + direction[0];
+                pathY = parent_node[1] + direction[1];
 
-				if (pathX in explored){
-					if (pathY in explored[pathX]){
-						continue
-					} else {
-						explored[pathX][pathY] = true
-					}
-				} else{
-					explored[pathX] = {}
-					explored[pathX][pathY] = true
-				}
+                if (!legalPosition(pathX, pathY, 1, -1)) {
+                    // Destination is not a valid square
+                    continue;
+                }
+                if (i >= 4) {
+                    // Check neighbourin squares for diagonal moves
+                    var neighbour_x = parent_node[0]
+                    var neighbour_y = parent_node[1] + direction[1]
+                    if (!legalPosition(neighbour_x, neighbour_y, 1, -1)) {
+                        continue
+                    }
+                    var neighbour_x = parent_node[0] + direction[0]
+                    var neighbour_y = parent_node[1]
+                    if (!legalPosition(neighbour_x, neighbour_y, 1, -1)) {
+                        continue
+                    }
+                }
 
-				new_node = [pathX, pathY, parent_node];
-				nodes.push(new_node);
-			}
+                if (pathX in explored) {
+                    if (pathY in explored[pathX]) {
+                        continue
+                    } else {
+                        explored[pathX][pathY] = true
+                    }
+                } else {
+                    explored[pathX] = {}
+                    explored[pathX][pathY] = true
+                }
 
-		}
+                new_node = [pathX, pathY, parent_node];
+                nodes.push(new_node);
+            }
 
-		step_size = 2; // running
-		
-		if(pathTiles.length <= step_size){
-			// Step to the destination
-			x = pathTiles[0][0];
-			y = pathTiles[0][1];
+        }
 
-		} else {
-			// Move two steps forward
-			x = pathTiles[pathTiles.length-step_size-1][0];
-			y = pathTiles[pathTiles.length-step_size-1][1];
-		}
+        step_size = 2; // running
 
-		selected[0] = x;
-		selected[1] = y;
-	}
+        if (pathTiles.length <= step_size) {
+            // Step to the destination
+            x = pathTiles[0][0];
+            y = pathTiles[0][1];
+
+        } else {
+            // Move two steps forward
+            x = pathTiles[pathTiles.length - step_size - 1][0];
+            y = pathTiles[pathTiles.length - step_size - 1][1];
+        }
+
+        selected[0] = x;
+        selected[1] = y;
+    }
 }
+
 function place() {
-	if(mode>0){
-		//x y mode ox oy cooldown health
-		//prevent 2 mobs on same tile
-		for(var i=0;i<mobs.length;i++){
-			if(mobs[i][3]==selected[0] && mobs[i][4]==selected[1]){
-				return;
-			}
-		}
-		if(mode == 2) {
-			mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode],false]);
-		} else {
-			mobs.push([selected[0],selected[1],mode,selected[0],selected[1],0,HEALTH[mode]]);
-		}
-		mobs.sort(function(a,b){
-			return b[2]-a[2];
-		})
-	}
+    if (mode > 0) {
+        //x y mode ox oy cooldown health
+        //prevent 2 mobs on same tile
+        for (var i = 0; i < mobs.length; i++) {
+            if (mobs[i][3] == selected[0] && mobs[i][4] == selected[1]) {
+                return;
+            }
+        }
+        if (mode == 2) {
+            mobs.push([selected[0], selected[1], mode, selected[0], selected[1], 0, HEALTH[mode], false]);
+        } else {
+            mobs.push([selected[0], selected[1], mode, selected[0], selected[1], 0, HEALTH[mode]]);
+        }
+        mobs.sort(function (a, b) {
+            return b[2] - a[2];
+        })
+    }
 }
-function updatePrayDisplay() {
-	if(praysJustOn[0]) {
-		new Audio("mageOn.ogg").play();
-	}
-	if(praysJustOn[1]) {
-		new Audio("rangeOn.ogg").play();
-	}
-	if(praysJustOn[2]) {
-		new Audio("meleeOn.ogg").play();
-	}
-	if(pray !== 1 && praysOn[0]) {
-		new Audio("mageOff.ogg").play();
-	}
-	if(pray !== 2 && praysOn[1]) {
-		new Audio("rangeOff.ogg").play();
-	}
-	if(pray !== 3 && praysOn[2]) {
-		new Audio("meleeOff.ogg").play();
-	}
 
-	mageEle.className = "invisible"
-	rangeEle.className = "invisible"
-	meleeEle.className = "invisible"
-	if(pray == 1) {
-		mageEle.className = ""
-		praysOn = [1,0,0]
-	} else if(pray == 2) {
-		rangeEle.className = ""
-		praysOn = [0,1,0]
-	} else if(pray == 3) {
-		meleeEle.className = ""
-		praysOn = [0,0,1]
-	} else {
-		praysOn = [0,0,0]
-	}
-	renderingPray = pray;
-	praysJustOn = [0,0,0]
+function updatePrayDisplay() {
+    if (praysJustOn[0]) {
+        new Audio("mageOn.ogg").play();
+    }
+    if (praysJustOn[1]) {
+        new Audio("rangeOn.ogg").play();
+    }
+    if (praysJustOn[2]) {
+        new Audio("meleeOn.ogg").play();
+    }
+    if (pray !== 1 && praysOn[0]) {
+        new Audio("mageOff.ogg").play();
+    }
+    if (pray !== 2 && praysOn[1]) {
+        new Audio("rangeOff.ogg").play();
+    }
+    if (pray !== 3 && praysOn[2]) {
+        new Audio("meleeOff.ogg").play();
+    }
+
+    mageEle.className = "invisible"
+    rangeEle.className = "invisible"
+    meleeEle.className = "invisible"
+    if (pray == 1) {
+        mageEle.className = ""
+        praysOn = [1, 0, 0]
+    } else if (pray == 2) {
+        rangeEle.className = ""
+        praysOn = [0, 1, 0]
+    } else if (pray == 3) {
+        meleeEle.className = ""
+        praysOn = [0, 0, 1]
+    } else {
+        praysOn = [0, 0, 0]
+    }
+    renderingPray = pray;
+    praysJustOn = [0, 0, 0]
 }
 var last3Prays = [];
+
 function step() {
-	scrollingTape = !scrollingTape;
+    scrollingTape = !scrollingTape;
 
-	if(metronome) {
-		new Audio("bonk.ogg").play();
-	}
-	ticks_since_attack++;
-	if ((ticks_since_attack>ATTACK_SPEED) & (mobs.length > 0)){
-		ticks_wasted++;
-	}
-
-
-	updatePrayDisplay();
-
-	last3Prays.unshift(pray);
-	last3Prays.splice(31);
-
-	if ((last3Prays[0] != 0) & (last3Prays[1] != 0)){
-		prayer_used++;
-	}
-	if(mode==0/* && mobs.length>0*/){
-		
-		var line = []
-		for(var i=0;i<mobs.length;i++){
-			var mob = mobs[i];
-			mob[5]--;
-			var x = mob[0];
-			var y = mob[1];
-			var t = mob[2];
-			var s = SIZE[t];
-			var r = RANGE[t];
-			line.push((mob[7] == true || mob[7] == undefined) ? -t : -1000);
-			//move
-			if(!hasLOS(x,y,selected[0],selected[1],s,r,true)){
-				var dx = x + Math.sign(selected[0]-x);
-				var dy = y + Math.sign(selected[1]-y);
-				
-				if(doesCollide(x,y,s,selected[0],selected[1],1)){
-					// Random movement if player is under the mob
-					if(Math.random() < 0.5){
-						dy = mob[1]
-						if(Math.random() < 0.5){
-							dx = mob[0]+1
-						} else {
-							dx = mob[0]-1
-						}
-					} else {
-						dx = mob[0]
-						if(Math.random() < 0.5){
-							dy = mob[1]+1
-						} else {
-							dy = mob[1]-1
-						}
-					}
-				} else if(doesCollide(dx,dy,s,selected[0],selected[1],1)){
-					//allows corner safespotting
-					dy = mob[1]
-				}
-
-				if (mob[5] > CD[t]){
-					// No movement right after melee dig. 8 ticks after the dig it should be able to move again.
-					dx = mob[0]
-					dy = mob[1]
-				}   
+    if (metronome) {
+        new Audio("bonk.ogg").play();
+    }
+    ticks_since_attack++;
+    if ((ticks_since_attack > ATTACK_SPEED) & (mobs.length > 0)) {
+        ticks_wasted++;
+    }
 
 
-				if(legalPosition(dx,dy,s,i)){
-					mob[0] = dx;
-					mob[1] = dy;
-				}else if(legalPosition(dx,y,s,i)){
-					mob[0] = dx;
-				}else if(legalPosition(x,dy,s,i)){
-					mob[1] = dy;
-				}
+    updatePrayDisplay();
 
-				// Melee dig mechanic
-				if (mob[2] == 3){
-					//todo: investigate bug where melee appears in a level ith no melees
-					//console.log("MELEE")
-					if (((mob[5] <= -16) & (Math.random() < 0.1)) | (mob[5] <= -50 )) {
-						meleeDig(i)
-						mob[5] = 12  // Reset attack counter. This many ticks before the next attack
-					}
-				}
-			}
-			x = mob[0];
-			y = mob[1];
-			//attack
-			if(hasLOS(x,y,selected[0],selected[1],s,r,true) || (t == 2 && mob[7] == true)) {
-				if(mob[5]<=0){					
-					line[line.length-1] *= -1;
-					mob[5] = CD[t];
-					if(t == 2) {
-						mob[7] = !mob[7]
-					}
-					//attack animation/sound
-					if(t != 2 || (t == 2 && mob[7] == false)) {mob[8] = 1;new Audio(SOUNDS[t]).play();}
-				}
-			}
-		}
-		tape.unshift(line);
+    last3Prays.unshift(pray);
+    last3Prays.splice(31);
 
-		for(var i in tape[0]) {
-			if(tape[0][i] <= 0 || Math.abs(tape[0][i]) == 1000) {
-				continue;
-			}
-			if(tape[0][i] == types.bat && pray == prays.range) {
-				continue;
-			}
-			if(tape[0][i] == types.melee && pray == prays.melee) {
-				continue;
-			}
-			if(tape[0][i] == types.ranger && pray == prays.range) {
-				continue;
-			}
-			if(tape[0][i] == types.mager && pray == prays.mage) {
-				continue;
-			}
-			var needToPray = ((last3Prays[3] == prays.mage) ? (prays.range) : ((last3Prays[3] == prays.range) ? (prays.mage) : 133742042042069 /*impossible to pray 133742042042069 without hacking*/))
-			if(tape[0][i] == types.blob && pray == needToPray) {
-				continue;
-			}
+    if ((last3Prays[0] != 0) & (last3Prays[1] != 0)) {
+        prayer_used++;
+    }
+    if (mode == 0 /* && mobs.length>0*/ ) {
 
-			hit = randInt(0,DAMAGE[tape[0][i]])
-			health -= hit;
-			damage_taken += hit;
-		}
-		
-		if(tape.length > 30) {
-			tape.splice(30)
-		}
+        var line = []
+        for (var i = 0; i < mobs.length; i++) {
+            var mob = mobs[i];
+            mob[5]--;
+            var x = mob[0];
+            var y = mob[1];
+            var t = mob[2];
+            var s = SIZE[t];
+            var r = RANGE[t];
+            line.push((mob[7] == true || mob[7] == undefined) ? -t : -1000);
+            //move
+            if (!hasLOS(x, y, selected[0], selected[1], s, r, true)) {
+                var dx = x + Math.sign(selected[0] - x);
+                var dy = y + Math.sign(selected[1] - y);
 
-		if(attacking == undefined) {
-			pathToDestTile();
-		} else {
-			if(ticks_since_attack >= ATTACK_SPEED){
-				if (Math.random() < ACCURACY[mobs[attacking][2]]){
-					mobs[attacking][6]-=randInt(0,MAX_HIT);	
-				}
-				ticks_since_attack = 0;
-			}
+                if (doesCollide(x, y, s, selected[0], selected[1], 1)) {
+                    // Random movement if player is under the mob
+                    if (Math.random() < 0.5) {
+                        dy = mob[1]
+                        if (Math.random() < 0.5) {
+                            dx = mob[0] + 1
+                        } else {
+                            dx = mob[0] - 1
+                        }
+                    } else {
+                        dx = mob[0]
+                        if (Math.random() < 0.5) {
+                            dy = mob[1] + 1
+                        } else {
+                            dy = mob[1] - 1
+                        }
+                    }
+                } else if (doesCollide(dx, dy, s, selected[0], selected[1], 1)) {
+                    //allows corner safespotting
+                    dy = mob[1]
+                }
 
-			if(mobs[attacking][6] <= 0) {
-				mobs.splice(attacking,1);
-				attacking = undefined;
-			}
-		}
-	}
-}
-function remove(){
-	mobs = []
-	attacking = undefined;
-	health = 99;
-	reset();
-	drawWave();
-}
-function reset(){
-	attacking = undefined;
-	for(var i=0;i<mobs.length;i++){
-		mobs[i][0] = mobs[i][3];
-		mobs[i][1] = mobs[i][4];
-		mobs[i][5] = 0;
-		mobs[i][6] = HEALTH[mobs[i][2]]
-		if(mobs[i][7] !== undefined) mobs[i][7] = false;
-	}
-	tape = [];
+                if (mob[5] > CD[t]) {
+                    // No movement right after melee dig. 8 ticks after the dig it should be able to move again.
+                    dx = mob[0]
+                    dy = mob[1]
+                }
+
+
+                if (legalPosition(dx, dy, s, i)) {
+                    mob[0] = dx;
+                    mob[1] = dy;
+                } else if (legalPosition(dx, y, s, i)) {
+                    mob[0] = dx;
+                } else if (legalPosition(x, dy, s, i)) {
+                    mob[1] = dy;
+                }
+
+                // Melee dig mechanic
+                if (mob[2] == 3) {
+                    //todo: investigate bug where melee appears in a level ith no melees
+                    //console.log("MELEE")
+                    if (((mob[5] <= -16) & (Math.random() < 0.1)) | (mob[5] <= -50)) {
+                        meleeDig(i)
+                        mob[5] = 12 // Reset attack counter. This many ticks before the next attack
+                    }
+                }
+            }
+            x = mob[0];
+            y = mob[1];
+            //attack
+            if (hasLOS(x, y, selected[0], selected[1], s, r, true) || (t == 2 && mob[7] == true)) {
+                if (mob[5] <= 0) {
+                    line[line.length - 1] *= -1;
+                    mob[5] = CD[t];
+                    if (t == 2) {
+                        mob[7] = !mob[7]
+                    }
+                    //attack animation/sound
+                    if (t != 2 || (t == 2 && mob[7] == false)) {
+                        mob[8] = 1;
+                        new Audio(SOUNDS[t]).play();
+                    }
+                }
+            }
+        }
+        tape.unshift(line);
+
+        for (var i in tape[0]) {
+            if (tape[0][i] <= 0 || Math.abs(tape[0][i]) == 1000) {
+                continue;
+            }
+            if (tape[0][i] == types.bat && pray == prays.range) {
+                continue;
+            }
+            if (tape[0][i] == types.melee && pray == prays.melee) {
+                continue;
+            }
+            if (tape[0][i] == types.ranger && pray == prays.range) {
+                continue;
+            }
+            if (tape[0][i] == types.mager && pray == prays.mage) {
+                continue;
+            }
+            var needToPray = ((last3Prays[3] == prays.mage) ? (prays.range) : ((last3Prays[3] == prays.range) ? (prays.mage) : 133742042042069 /*impossible to pray 133742042042069 without hacking*/ ))
+            if (tape[0][i] == types.blob && pray == needToPray) {
+                continue;
+            }
+
+            hit = randInt(0, DAMAGE[tape[0][i]])
+            health -= hit;
+            damage_taken += hit;
+        }
+
+        if (tape.length > 30) {
+            tape.splice(30)
+        }
+
+        if (attacking == undefined) {
+            pathToDestTile();
+        } else {
+            if (ticks_since_attack >= ATTACK_SPEED) {
+                if (Math.random() < ACCURACY[mobs[attacking][2]]) {
+                    mobs[attacking][6] -= randInt(0, MAX_HIT);
+                }
+                ticks_since_attack = 0;
+            }
+
+            if (mobs[attacking][6] <= 0) {
+                mobs.splice(attacking, 1);
+                attacking = undefined;
+            }
+        }
+    }
 }
 
-
-
-
-
-function setMode(m){
-	var priorM = mode;
-	mode = m;
-	if(m == 0 & priorM != 0) {
-		destTile[0] = selected[0];
-		destTile[1] = selected[1];
-	}
-	drawWave();
-}
-function drawLOS(x,y,s,r,isNPC,color="red"){
-	ctx.globalAlpha = 0.25;
-	for(var i=0;i<870;i++){
-		ctx.fillStyle = color;
-
-		var x2 = i%29;
-		var y2 = Math.floor(i/29);
-
-		if(hasLOS(x,y,x2,y2,s,r,isNPC)){
-
-			ctx.fillRect(x2*size,y2*size,size,size)
-		}
-	}
-	ctx.globalAlpha = 1;
+function remove() {
+    mobs = []
+    attacking = undefined;
+    health = 99;
+    reset();
+    drawWave();
 }
 
-function lerp(x,y,a) {
-	return ((y-x)*a) + x
+function reset() {
+    attacking = undefined;
+    for (var i = 0; i < mobs.length; i++) {
+        mobs[i][0] = mobs[i][3];
+        mobs[i][1] = mobs[i][4];
+        mobs[i][5] = 0;
+        mobs[i][6] = HEALTH[mobs[i][2]]
+        if (mobs[i][7] !== undefined) mobs[i][7] = false;
+    }
+    tape = [];
+}
+
+
+
+
+function setMode(m) {
+    var priorM = mode;
+    mode = m;
+    if (m == 0 & priorM != 0) {
+        destTile[0] = selected[0];
+        destTile[1] = selected[1];
+    }
+    drawWave();
+}
+
+function drawLOS(x, y, s, r, isNPC, color = "red") {
+    ctx.globalAlpha = 0.25;
+    for (var i = 0; i < 870; i++) {
+        ctx.fillStyle = color;
+
+        var x2 = i % 29;
+        var y2 = Math.floor(i / 29);
+
+        if (hasLOS(x, y, x2, y2, s, r, isNPC)) {
+
+            ctx.fillRect(x2 * size, y2 * size, size, size)
+        }
+    }
+    ctx.globalAlpha = 1;
+}
+
+function lerp(x, y, a) {
+    return ((y - x) * a) + x
 }
 var scrollingTape = true;
+
 function drawWave() {
-	ctx.save();
-	ctx.globalAlpha = 1;
-	ctx.fillStyle = (darkTheme == true) ? "black" : "white";
-	ctx.fillRect(0,0,can.width,can.height);
-	var colors = ["cyan","grey","yellow","orange","lime","red"]
-	for(var i=0;i<870;i++){
-		ctx.fillStyle = (darkTheme == true) ? ((i%2)?"#100":"#210") : ((i%2)?"#FFF":"#EEE");
-		ctx.fillRect(i%29*size,Math.floor(i/29)*size,size,size)
-	}
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = (darkTheme == true) ? "black" : "white";
+    ctx.fillRect(0, 0, can.width, can.height);
+    var colors = ["cyan", "grey", "yellow", "orange", "lime", "red"]
+    for (var i = 0; i < 870; i++) {
+        ctx.fillStyle = (darkTheme == true) ? ((i % 2) ? "#100" : "#210") : ((i % 2) ? "#FFF" : "#EEE");
+        ctx.fillRect(i % 29 * size, Math.floor(i / 29) * size, size, size)
+    }
 
-	//pillars
-	ctx.fillStyle = (darkTheme == true) ? "#222" : "#555";
-	for(var i=0;i<pillars.length;i++){
-		if(filters[i]){
-			ctx.fillRect(pillars[i][0]*size,(pillars[i][1]+1)*size,3*size,-3*size)	
-		}
-	}
-	ctx.globalAlpha = (darkTheme == true) ? 0.1 : 0.3;
-	ctx.fillStyle = (darkTheme == true) ? "#FFF" : "#666";
-	for(var i=0;i<spawns.length;i++){
-		ctx.fillRect(spawns[i][0]*size,(spawns[i][1]+1)*size,4*size,-4*size)
-	}
-	ctx.fillStyle = "blue";
-	ctx.fillRect(8*size,(13+1)*size,3*size,-3*size)
+    //pillars
+    ctx.fillStyle = (darkTheme == true) ? "#222" : "#555";
+    for (var i = 0; i < pillars.length; i++) {
+        if (filters[i]) {
+            ctx.fillRect(pillars[i][0] * size, (pillars[i][1] + 1) * size, 3 * size, -3 * size)
+        }
+    }
+    ctx.globalAlpha = (darkTheme == true) ? 0.1 : 0.3;
+    ctx.fillStyle = (darkTheme == true) ? "#FFF" : "#666";
+    for (var i = 0; i < spawns.length; i++) {
+        ctx.fillRect(spawns[i][0] * size, (spawns[i][1] + 1) * size, 4 * size, -4 * size)
+    }
+    ctx.fillStyle = "blue";
+    ctx.fillRect(8 * size, (13 + 1) * size, 3 * size, -3 * size)
 
-	ctx.fillStyle = "green";
-	for(var i=0;i<zuk_safe_spots.length;i++){
-		ctx.fillRect(zuk_safe_spots[i][0]*size,(zuk_safe_spots[i][1]+1)*size,1*size,-1*size)
-	}
-	ctx.globalAlpha = 1;
+    ctx.fillStyle = "green";
+    for (var i = 0; i < zuk_safe_spots.length; i++) {
+        ctx.fillRect(zuk_safe_spots[i][0] * size, (zuk_safe_spots[i][1] + 1) * size, 1 * size, -1 * size)
+    }
+    ctx.globalAlpha = 1;
 
-	//mobs
-	for(var i=0;i<mobs.length;i++){
-		var x = mobs[i][0];
-		var y = mobs[i][1];
-		var t = mobs[i][2];
-		var s = SIZE[mobs[i][2]];
-		var r = RANGE[mobs[i][2]];
-		var c = colors[mobs[i][2]];
-		var animationProgress = mobs[i][8];
-		if(animationProgress === undefined) {
-			mobs[i][8] = 0;
-		}
-		if(animationProgress > 0) {
-			mobs[i][8] = Math.max(0,mobs[i][8]-0.05)
-		}
+    //mobs
+    for (var i = 0; i < mobs.length; i++) {
+        var x = mobs[i][0];
+        var y = mobs[i][1];
+        var t = mobs[i][2];
+        var s = SIZE[mobs[i][2]];
+        var r = RANGE[mobs[i][2]];
+        var c = colors[mobs[i][2]];
+        var animationProgress = mobs[i][8];
+        if (animationProgress === undefined) {
+            mobs[i][8] = 0;
+        }
+        if (animationProgress > 0) {
+            mobs[i][8] = Math.max(0, mobs[i][8] - 0.05)
+        }
 
-		var maxHealth = HEALTH[mobs[i][2]];
-		ctx.globalAlpha = .35
-		ctx.fillStyle = ctx.strokeStyle = c;
-		ctx.fillRect(mobs[i][0]*size,(mobs[i][1]+1)*size,1*size,-1*size)
-		ctx.strokeRect(mobs[i][0]*size+1,(mobs[i][1]+1)*size-1,s*size,-s*size)
-		if(mode==0 && hasLOS(mobs[i][0],mobs[i][1],selected[0],selected[1],s,r,true)){
-			ctx.fillStyle = "black";
-			ctx.fillRect(mobs[i][0]*size,(mobs[i][1]+1)*size,1*size/4,-1*size/4)
-		}
-		ctx.globalAlpha = 1;
-		ctx.save();
-		var actualSize = s*size;
-		ctx.translate(x*size + actualSize/2,(y-s+1)*size + actualSize/2)
-		if(t == types.mager) {
-			ctx.rotate(animationProgress*Math.PI*2)
-		}
-		if(t == types.ranger) {
-			ctx.rotate(Math.sin(-animationProgress*Math.PI))
-		}
-		if(t == types.blob) {
-			ctx.scale(1 + Math.sin(animationProgress*Math.PI)/4,1 - Math.sin(animationProgress*Math.PI)/4)
-		}
-		if(t == types.bat) {
-			ctx.translate(Math.sin(animationProgress*Math.PI*4)*2,Math.sin(animationProgress*Math.PI*-2))
-		}
-		if(t == types.melee) {
-			ctx.transform(1,0,Math.sin(-animationProgress*Math.PI*2)/2,1,0,0)
-		}
-		ctx.drawImage(allImages[mobs[i][2]-1],-actualSize/2,-actualSize/2,s*size,s*size)
-		ctx.restore();
-		if(mobs[i][6] < maxHealth) {
-			ctx.fillStyle = "red";
-			ctx.fillRect(x*size + s*size/2 - 40,(y*size) - 50,80,5);
-			ctx.fillStyle = "green";
-			ctx.fillRect(x*size + s*size/2 - 40,(y*size) - 50,(mobs[i][6]/maxHealth)*80,5);
-		}
-	}
-	var s = SIZE[mode];
-	var r = RANGE[mode];
-	var c = colors[mode];
-	drawLOS(selected[0],selected[1],s,r,mode>0)
-	ctx.fillStyle = ctx.strokeStyle = c
-	ctx.fillRect(selected[0]*size,(selected[1]+1)*size,1*size,-1*size)
-	ctx.strokeRect(selected[0]*size,(selected[1]+1)*size,s*size,-s*size)
-	var offset = 29*size;
-	for(var i=0;i<tape.length;i++){
-		var condition = ((scrollingTape) ? !(i%2==0) : (i%2==0));
-		ctx.fillStyle = darkTheme == true ? (condition ? "#111" : "#222") : (condition ? "#CCC" : "#DDD");
-		ctx.fillRect(offset,size*(i),size*9,size)
-		if(last3Prays[i] > 0) {
-			ctx.fillStyle = last3Prays[i] == prays.melee ? (darkTheme == true ? "white" : "#000") : (last3Prays[i] == prays.range ? "green" : "red")
-			ctx.globalAlpha = (darkTheme == true) ? .2 : .6
-			ctx.fillRect(offset,size*(i),size*9,size);
-			ctx.globalAlpha = 1;
-		}
-		for(var j=0;j<tape[i].length;j++){
-			var t = tape[i][j]
-			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
-				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][Math.abs(t)]
-				ctx.fillRect(offset+size*j,size*i,size,size)
-				if((t == types.mager && last3Prays[i] != prays.mage) || (t == types.ranger && last3Prays[i] != prays.range) || (t == types.melee && last3Prays[i] != prays.melee) || (t == types.blob && !((last3Prays[i] == prays.mage || last3Prays[i] == prays.range) && (last3Prays[i+3] == prays.mage || last3Prays[i+3] == prays.range) && (last3Prays[i] != last3Prays[i+3])))) {
-					ctx.fillStyle = "rgb(140,50,20)";
-					ctx.fillRect(offset + size*j,size*i,4,4);
-				}
-			}else if(t == 1000 /*jesus christ we have a blob*/){
-				ctx.fillStyle = "black";
-				ctx.fillRect(offset+size*(j),size*(i),size,size)
-			}
-		}
-	}
+        var maxHealth = HEALTH[mobs[i][2]];
+        ctx.globalAlpha = .35
+        ctx.fillStyle = ctx.strokeStyle = c;
+        ctx.fillRect(mobs[i][0] * size, (mobs[i][1] + 1) * size, 1 * size, -1 * size)
+        ctx.strokeRect(mobs[i][0] * size + 1, (mobs[i][1] + 1) * size - 1, s * size, -s * size)
+        if (mode == 0 && hasLOS(mobs[i][0], mobs[i][1], selected[0], selected[1], s, r, true)) {
+            ctx.fillStyle = "black";
+            ctx.fillRect(mobs[i][0] * size, (mobs[i][1] + 1) * size, 1 * size / 4, -1 * size / 4)
+        }
+        ctx.globalAlpha = 1;
+        ctx.save();
+        var actualSize = s * size;
+        ctx.translate(x * size + actualSize / 2, (y - s + 1) * size + actualSize / 2)
+        if (t == types.mager) {
+            ctx.rotate(animationProgress * Math.PI * 2)
+        }
+        if (t == types.ranger) {
+            ctx.rotate(Math.sin(-animationProgress * Math.PI))
+        }
+        if (t == types.blob) {
+            ctx.scale(1 + Math.sin(animationProgress * Math.PI) / 4, 1 - Math.sin(animationProgress * Math.PI) / 4)
+        }
+        if (t == types.bat) {
+            ctx.translate(Math.sin(animationProgress * Math.PI * 4) * 2, Math.sin(animationProgress * Math.PI * -2))
+        }
+        if (t == types.melee) {
+            ctx.transform(1, 0, Math.sin(-animationProgress * Math.PI * 2) / 2, 1, 0, 0)
+        }
+        ctx.drawImage(allImages[mobs[i][2] - 1], -actualSize / 2, -actualSize / 2, s * size, s * size)
+        ctx.restore();
+        if (mobs[i][6] < maxHealth) {
+            ctx.fillStyle = "red";
+            ctx.fillRect(x * size + s * size / 2 - 40, (y * size) - 50, 80, 5);
+            ctx.fillStyle = "green";
+            ctx.fillRect(x * size + s * size / 2 - 40, (y * size) - 50, (mobs[i][6] / maxHealth) * 80, 5);
+        }
+    }
+    var s = SIZE[mode];
+    var r = RANGE[mode];
+    var c = colors[mode];
+    drawLOS(selected[0], selected[1], s, r, mode > 0)
+    ctx.fillStyle = ctx.strokeStyle = c
+    ctx.fillRect(selected[0] * size, (selected[1] + 1) * size, 1 * size, -1 * size)
+    ctx.strokeRect(selected[0] * size, (selected[1] + 1) * size, s * size, -s * size)
+    var offset = 29 * size;
+    for (var i = 0; i < tape.length; i++) {
+        var condition = ((scrollingTape) ? !(i % 2 == 0) : (i % 2 == 0));
+        ctx.fillStyle = darkTheme == true ? (condition ? "#111" : "#222") : (condition ? "#CCC" : "#DDD");
+        ctx.fillRect(offset, size * (i), size * 9, size)
+        if (last3Prays[i] > 0) {
+            ctx.fillStyle = last3Prays[i] == prays.melee ? (darkTheme == true ? "white" : "#000") : (last3Prays[i] == prays.range ? "green" : "red")
+            ctx.globalAlpha = (darkTheme == true) ? .2 : .6
+            ctx.fillRect(offset, size * (i), size * 9, size);
+            ctx.globalAlpha = 1;
+        }
+        for (var j = 0; j < tape[i].length; j++) {
+            var t = tape[i][j]
+            if (t >= 0 && Math.abs(t) <= 15 /*sensible*/ ) {
+                ctx.fillStyle = ["", "grey", "yellow", "orange", "lime", "red"][Math.abs(t)]
+                ctx.fillRect(offset + size * j, size * i, size, size)
+                if ((t == types.mager && last3Prays[i] != prays.mage) || (t == types.ranger && last3Prays[i] != prays.range) || (t == types.melee && last3Prays[i] != prays.melee) || (t == types.blob && !((last3Prays[i] == prays.mage || last3Prays[i] == prays.range) && (last3Prays[i + 3] == prays.mage || last3Prays[i + 3] == prays.range) && (last3Prays[i] != last3Prays[i + 3])))) {
+                    ctx.fillStyle = "rgb(140,50,20)";
+                    ctx.fillRect(offset + size * j, size * i, 4, 4);
+                }
+            } else if (t == 1000 /*jesus christ we have a blob*/ ) {
+                ctx.fillStyle = "black";
+                ctx.fillRect(offset + size * (j), size * (i), size, size)
+            }
+        }
+    }
 
-	if(mode == 0) {
-		//destTile
-		if(destTile[0] != selected[0] && destTile[1] != selected[1]) {
-			ctx.strokeStyle = "blue"
-			ctx.strokeRect(destTile[0]*size,destTile[1]*size,size,size);
-		}
+    if (mode == 0) {
+        //destTile
+        if (destTile[0] != selected[0] && destTile[1] != selected[1]) {
+            ctx.strokeStyle = "blue"
+            ctx.strokeRect(destTile[0] * size, destTile[1] * size, size, size);
+        }
 
-		//player
-		player[0] = lerp(player[0],selected[0]*size,.15);
-		player[1] = lerp(player[1],selected[1]*size,.15);
-		ctx.globalAlpha = .4;
-		ctx.fillStyle = "blue"
-		ctx.fillRect(player[0],player[1],size,size);
-		ctx.globalAlpha = 1;
+        //player
+        player[0] = lerp(player[0], selected[0] * size, .15);
+        player[1] = lerp(player[1], selected[1] * size, .15);
+        ctx.globalAlpha = .4;
+        ctx.fillStyle = "blue"
+        ctx.fillRect(player[0], player[1], size, size);
+        ctx.globalAlpha = 1;
 
-		if(attacking !== undefined) {
-			ctx.drawImage(allImages[5],player[0],player[1],size,size)
-		}
-		//health
-		ctx.fillStyle = "red";
-		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20 - (renderingPray > 0 ? 28 : 0),40,5);
-		ctx.fillStyle = "green";
-		ctx.fillRect(player[0] + size/2 - 20,player[1] - 20 - (renderingPray > 0 ? 28 : 0),Math.max(0,(health/HEALTH[0])*40),5);
-		if(renderingPray > 0) {
-			ctx.drawImage(allImages[5+renderingPray],player[0] - (28-size)/2,player[1]-32,28,28)
-		}
-	}
-
-
-	//get ready
-	if(getReady == true) {
-		ctx.fillStyle = (darkTheme == true) ? "white" : "black";
-		ctx.textBaseline = "middle";
-		ctx.textAlign="center";
-		ctx.font = "50px Verdana";
-		ctx.fillStyle = "white";
-		ctx.fillText("Get Ready!",(can.width-6*size)/2,can.height/2);
-	} else if((mobs.length == 0) & (ticks_wasted > 0)) {
-		ctx.fillStyle = "white";
-		ctx.textBaseline = "top";
-		ctx.textAlign="left";
-		ctx.font = "15px Verdana";
-		ctx.fillStyle = "black"
-		ctx.fillText(
-			"Wave compelted!\n" + 
-			"Ticks wasted: " + ticks_wasted + " " +
-			"Prayer used: " + prayer_used + " " +
-			"Damage taken: " + damage_taken + " "
+        if (attacking !== undefined) {
+            ctx.drawImage(allImages[5], player[0], player[1], size, size)
+        }
+        //health
+        ctx.fillStyle = "red";
+        ctx.fillRect(player[0] + size / 2 - 20, player[1] - 20 - (renderingPray > 0 ? 28 : 0), 40, 5);
+        ctx.fillStyle = "green";
+        ctx.fillRect(player[0] + size / 2 - 20, player[1] - 20 - (renderingPray > 0 ? 28 : 0), Math.max(0, (health / HEALTH[0]) * 40), 5);
+        if (renderingPray > 0) {
+            ctx.drawImage(allImages[5 + renderingPray], player[0] - (28 - size) / 2, player[1] - 32, 28, 28)
+        }
+    }
 
 
-			,5,5);
-	}
-	if(health < 0) {
-		ctx.fillStyle = "white";
-		ctx.textBaseline = "top";
-		ctx.textAlign="left";
-		ctx.font = "15px Verdana";
-		ctx.fillStyle = "red"
-		ctx.fillText("(You are currently dead, but you may keep going if you'd like.)",5,5);
-	}
-	
+    //get ready
+    if (getReady == true) {
+        ctx.fillStyle = (darkTheme == true) ? "white" : "black";
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+        ctx.font = "50px Verdana";
+        ctx.fillStyle = "white";
+        ctx.fillText("Get Ready!", (can.width - 6 * size) / 2, can.height / 2);
+    } else if ((mobs.length == 0) & (ticks_wasted > 0)) {
+        ctx.fillStyle = "white";
+        ctx.textBaseline = "top";
+        ctx.textAlign = "left";
+        ctx.font = "15px Verdana";
+        ctx.fillStyle = "black"
+        ctx.fillText(
+            "Wave compelted!\n" +
+            "Ticks wasted: " + ticks_wasted + " " +
+            "Prayer used: " + prayer_used + " " +
+            "Damage taken: " + damage_taken + " "
+
+
+            , 5, 5);
+    }
+    if (health < 0) {
+        ctx.fillStyle = "white";
+        ctx.textBaseline = "top";
+        ctx.textAlign = "left";
+        ctx.font = "15px Verdana";
+        ctx.fillStyle = "red"
+        ctx.fillText("(You are currently dead, but you may keep going if you'd like.)", 5, 5);
+    }
+
 }
 
 function loop() {
-	var counter = 0;
-	window.setInterval(function() {if(playing) {counter++;} else {counter = 0;}if(counter >= 10) {counter = 0;step();if(tape.length>= 30) { /*tape = [];*/}} drawWave();},600/10)
+    var counter = 0;
+    window.setInterval(function () {
+        if (playing) {
+            counter++;
+        } else {
+            counter = 0;
+        }
+        if (counter >= 10) {
+            counter = 0;
+            step();
+        }
+        drawWave();
+    }, 600 / 10)
 
 }
 var allImages = [];
+
 function images(paths) {
-	var done = 0;
-	for(var i in paths) {
-		var img = new Image()
-		img.src = paths[i]
-		img.ind = i;
-		img.onload = function() {
-			allImages[this.ind] = this;
-			done++;
-			if(done >= paths.length) {
-				loop();
-			}
-		}
-	}
+    var done = 0;
+    for (var i in paths) {
+        var img = new Image()
+        img.src = paths[i]
+        img.ind = i;
+        img.onload = function () {
+            allImages[this.ind] = this;
+            done++;
+            if (done >= paths.length) {
+                loop();
+            }
+        }
+    }
 }
 updatePrayDisplay();
-images(["1.png","2.png","3.png","4.png","5.png","6.png","mageOver.png","rangeOver.png","meleeOver.png"])
-
-</script>
-</body>
+images(["1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "mageOver.png", "rangeOver.png", "meleeOver.png"])
+        </script>
+    </body>
 </html>
