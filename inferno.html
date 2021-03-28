@@ -569,12 +569,11 @@ function meleeDig(i){
 }
 
 function meleeDigAll(){
-		for(var i=0;i<mobs.length;i++){
-			if (mobs[i][2] == 3) {
-					meleeDig(i)
-				}
-			}
+	for(var i=0;i<mobs.length;i++){
+		if (mobs[i][2] == types.melee) {
+			meleeDig(i)
 		}
+	}
 	drawWave();
 }
 function digPosition(x,y){
@@ -941,16 +940,12 @@ function step() {
 
 				// Melee dig mechanic
 				if (mob[2] == 3){
-						if (
-								(
-									(mob[5] <= -16)
-									& (Math.random() < 0.1)
-								)
-								| (mob[5] <= -50 )
-							){
-							meleeDig(i)
-							mob[5] = 12  // Reset attack counter. This many ticks before the next attack
-						}
+					//todo: investigate bug where melee appears in a level ith no melees
+					//console.log("MELEE")
+					if (((mob[5] <= -16) & (Math.random() < 0.1)) | (mob[5] <= -50 )) {
+						meleeDig(i)
+						mob[5] = 12  // Reset attack counter. This many ticks before the next attack
+					}
 				}
 			}
 			x = mob[0];
@@ -1176,7 +1171,14 @@ function drawWave() {
 			var t = tape[i][j]
 			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
 				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][Math.abs(t)]
-				ctx.fillRect(offset+size*(j),size*(i),size,size)
+				ctx.fillRect(offset+size*j,size*i,size,size)
+					if(i == 0) {
+					console.log(t + "," + last3Prays[i] + ":" + (prays.range != last3Prays[i]));
+				}
+				if((t == types.mager && last3Prays[i] != prays.mage) || (t == types.ranger && last3Prays[i] != prays.range) || (t == types.melee && last3Prays[i] != prays.melee) || (t == types.blob && !((last3Prays[i] == prays.mage || last3Prays[i] == prays.range) && (last3Prays[i+3] == prays.mage || last3Prays[i+3] == prays.range) && (last3Prays[i] != last3Prays[i+3])))) {
+					ctx.fillStyle = "rgb(140,50,20)";
+					ctx.fillRect(offset + size*j,size*i,4,4);
+				}
 			}else if(t == 1000 /*jesus christ we have a blob*/){
 				ctx.fillStyle = "black";
 				ctx.fillRect(offset+size*(j),size*(i),size,size)
