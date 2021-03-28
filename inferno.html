@@ -1172,9 +1172,6 @@ function drawWave() {
 			if(t >= 0 && Math.abs(t) <= 15 /*sensible*/){
 				ctx.fillStyle = ["","grey","yellow","orange","lime","red"][Math.abs(t)]
 				ctx.fillRect(offset+size*j,size*i,size,size)
-					if(i == 0) {
-					console.log(t + "," + last3Prays[i] + ":" + (prays.range != last3Prays[i]));
-				}
 				if((t == types.mager && last3Prays[i] != prays.mage) || (t == types.ranger && last3Prays[i] != prays.range) || (t == types.melee && last3Prays[i] != prays.melee) || (t == types.blob && !((last3Prays[i] == prays.mage || last3Prays[i] == prays.range) && (last3Prays[i+3] == prays.mage || last3Prays[i+3] == prays.range) && (last3Prays[i] != last3Prays[i+3])))) {
 					ctx.fillStyle = "rgb(140,50,20)";
 					ctx.fillRect(offset + size*j,size*i,4,4);
