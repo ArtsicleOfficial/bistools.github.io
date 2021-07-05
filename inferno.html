@@ -894,25 +894,29 @@ function place() {
         })
     }
 }
-
+function playSound(url,volume) {
+    var a = new Audio(url);
+    a.volume = volume;
+    a.play();
+}
 function updatePrayDisplay() {
     if (praysJustOn[0]) {
-        new Audio("mageOn.ogg").play();
+        playSound("mageOn.ogg",0.5);
     }
     if (praysJustOn[1]) {
-        new Audio("rangeOn.ogg").play();
+        playSound("rangeOn.ogg",0.5);
     }
     if (praysJustOn[2]) {
-        new Audio("meleeOn.ogg").play();
+        playSound("meleeOn.ogg",0.5);
     }
     if (pray !== 1 && praysOn[0]) {
-        new Audio("mageOff.ogg").play();
+        playSound("mageOff.ogg",0.5);
     }
     if (pray !== 2 && praysOn[1]) {
-        new Audio("rangeOff.ogg").play();
+        playSound("rangeOff.ogg",0.5);
     }
     if (pray !== 3 && praysOn[2]) {
-        new Audio("meleeOff.ogg").play();
+        playSound("meleeOff.ogg",0.5);
     }
 
     mageEle.className = "invisible"
